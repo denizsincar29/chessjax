@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14181c">
+<title>chessjax — доступная шахматная доска</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>chessjax</h1>
+  <p>Рендер шахматной позиции по FEN: семантическая таблица + резюме для скринридера.</p>
+</header>
+
+<main>
+  <section aria-labelledby="input-heading">
+    <h2 id="input-heading" class="visually-hidden">Позиция</h2>
+    <label for="fen">FEN:</label>
+    <input id="fen" type="text" spellcheck="false" value="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1">
+    <button id="apply" type="button">Показать доску</button>
+    <p id="error" class="error" aria-live="assertive"></p>
+  </section>
+
+  <section aria-labelledby="board-heading">
+    <h2 id="board-heading" class="visually-hidden">Доска</h2>
+    <div id="board"></div>
+  </section>
+</main>
+
+<script type="module">
+  import { renderBoard } from "./chessjax.js";
+  const input = document.getElementById("fen");
+  const boardEl = document.getElementById("board");
+  const errorEl = document.getElementById("error");
+  function show() {
+    errorEl.textContent = "";
+    try {
+      renderBoard(boardEl, input.value);
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  }
+  document.getElementById("apply").addEventListener("click", show);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") show();
+  });
+  show();
+</script>
+</body>
+</html>

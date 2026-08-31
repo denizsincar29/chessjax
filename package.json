@@ -1,0 +1,9 @@
+{
+  "name": "chessjax",
+  "version": "0.1.0",
+  "description": "JS library to view chessboards on webpages and read them using screenreaders",
+  "type": "module",
+  "main": "chessjax.js",
+  "files": ["chessjax.js"],
+  "license": "MIT"
+}
