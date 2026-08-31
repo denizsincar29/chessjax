@@ -5,10 +5,18 @@ JS library to view chessboards on webpages and read them using screenreaders.
 
 ## Подключение
 
-Самодостаточное — один модуль, движок ходов (chess.js 0.13.4) вендорен в `vendor/`:
+Самодостаточное — один модуль, движок ходов (chess.js 0.13.4) вендорен в `vendor/`.
+Локально:
 
 ```html
 <script type="module" src="chessjax.js"></script>
+```
+
+Или с CDN (jsdelivr, пин на тег) — свои зависимости (`vendor/chess.js`) chessjax
+подтягивает сам относительно своего URL:
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.1.0/chessjax.js"></script>
 ```
 
 ## Использование
