@@ -112,3 +112,48 @@ button:hover, button:focus-visible {
   font-size: 0.9rem;
   max-width: 560px;
 }
+
+.chessjax-controls {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.chessjax-btn {
+  min-width: 44px;
+}
+
+.chessjax-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.chessjax-live {
+  min-height: 1.2em;
+  margin: 0.4rem 0 0;
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+}
+
+.chessjax-error {
+  color: var(--danger);
+  font-size: 0.9rem;
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+}
+
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.lang-switch select {
+  background: var(--bg-input);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+}

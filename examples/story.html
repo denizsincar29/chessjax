@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14181c">
+<link rel="icon" href="data:,">
+<title>chessjax — партия с кнопками-ходами</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header>
+  <h1>chessjax — повествование с кнопками-ходами</h1>
+  <p>Кнопка в тексте <code>&lt;button chess="id" move="N"&gt;</code> переключает доску с этим id на N-й ход белых. «N.5» — после ответа чёрных.</p>
+</header>
+
+<main>
+  <article aria-labelledby="story-heading">
+    <h2 id="story-heading">Опера-партия Морфи</h2>
+
+    <p>Знаменитая партия Морфи (1858, Париж): белые жертвуют коня, а затем и ферзя, чтобы вскрыть линии на чёрного короля. Начало примера — позиция после <button chess="morphy" move="10">10-го хода белых</button>, когда конь уже отдан на b5.</p>
+
+    <chessjax-board id="morphy" pgn="morphy.pgn" move="10"></chessjax-board>
+
+    <p>После <button chess="morphy" move="10">жертвы коня</button> чёрные вынуждены брать пешкой c6, и белые дают шах слоном — <button chess="morphy" move="11">11.Bxb5+</button>. Чёрные защищаются конём, но позиция уже вскрыта.</p>
+
+    <p>Ферзь чёрных лишается поддержки, и после <button chess="morphy" move="14">14-го хода</button> белая ладья готова ворваться. Ключевой удар — жертва ферзя: <button chess="morphy" move="16">16.Qb8+</button>, чёрный король обязан бить, и сразу следует мат ладьёй — <button chess="morphy" move="17">17.Rd8#</button>.</p>
+  </article>
+</main>
+
+<script type="module">
+  import "../chessjax.js";
+</script>
+</body>
+</html>

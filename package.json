@@ -4,6 +4,12 @@
   "description": "JS library to view chessboards on webpages and read them using screenreaders",
   "type": "module",
   "main": "chessjax.js",
-  "files": ["chessjax.js"],
-  "license": "MIT"
+  "files": [
+    "chessjax.js",
+    "vendor/chess.js"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "chess.js": "0.13.4"
+  }
 }

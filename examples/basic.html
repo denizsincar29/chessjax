@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14181c">
+<link rel="icon" href="data:,">
+<title>chessjax — базовые примеры</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header>
+  <h1>chessjax — базовые примеры</h1>
+  <p>Доски по FEN и из PGN; язык меняется через <code>chessjax.setLanguage()</code>.</p>
+</header>
+
+<main>
+  <section aria-labelledby="controls-heading">
+    <h2 id="controls-heading" class="visually-hidden">Язык</h2>
+    <div class="lang-switch">
+      <label for="lang">Язык:</label>
+      <select id="lang">
+        <option value="ru">Русский</option>
+        <option value="en">English</option>
+        <option value="de">Deutsch</option>
+        <option value="tr">Türkçe</option>
+      </select>
+    </div>
+  </section>
+
+  <section aria-labelledby="start-heading">
+    <h2 id="start-heading">Стартовая позиция по FEN</h2>
+    <chessjax-board fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"></chessjax-board>
+  </section>
+
+  <section aria-labelledby="e4-heading">
+    <h2 id="e4-heading">После 1.e4 (ход 1)</h2>
+    <chessjax-board fen="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"></chessjax-board>
+  </section>
+
+  <section aria-labelledby="pgn-heading">
+    <h2 id="pgn-heading">Партия из PGN, показан 11-й ход белых</h2>
+    <chessjax-board pgn="morphy.pgn" move="11"></chessjax-board>
+    <p class="hint">Кнопки навигации — следующий/предыдущий ход, «▶» — прогон всех ходов с озвучкой, «⏮» — в начало.</p>
+  </section>
+</main>
+
+<script type="module">
+  import { chessjax } from "../chessjax.js";
+  document.getElementById("lang").addEventListener("change", (e) => chessjax.setLanguage(e.target.value));
+</script>
+</body>
+</html>
