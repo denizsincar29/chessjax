@@ -373,6 +373,7 @@ class ChessboardElement extends HTMLElement {
     if (!this._root) this._root = this;
     registeredBoards.add(this);
     this._renderShell();
+    this._initialized = true;
     this._load();
   }
 
@@ -382,8 +383,10 @@ class ChessboardElement extends HTMLElement {
   }
 
   attributeChangedCallback(name, _old, value) {
-    if (!this.isConnected) return;
-    if (name === "lang") { this._load(); return; }
+    // В момент upgrade (innerHTML, статичный HTML) атрибуты приходят раньше
+    // connectedCallback — _tableWrap ещё нет, а начальные значения обработает
+    // сам connectedCallback. Здесь реагируем только на runtime-изменения.
+    if (!this.isConnected || !this._initialized) return;
     this._load();
   }
 
