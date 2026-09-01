@@ -264,8 +264,9 @@ export function renderBoard(container, fen, opts = {}) {
   container.replaceChildren(renderTable(parsed, lang), renderSummary(parsed, lang));
 }
 
-function renderTable(parsed, lang) {
+function renderTable(parsed, lang, opts = {}) {
   const t = I18N[lang] || I18N.ru;
+  const activeSquare = opts.activeSquare;
   const table = document.createElement("table");
   table.className = "chessjax-board";
   table.setAttribute("aria-label", t.board);
@@ -300,14 +301,19 @@ function renderTable(parsed, lang) {
       const square = file + rank;
       const td = document.createElement("td");
       td.className = (f + r) % 2 === 0 ? "square-dark" : "square-light";
+      td.dataset.square = square;
+      // roving tabindex: только активная клетка в порядке таба, остальные доступны стрелками.
+      td.tabIndex = square === activeSquare ? 0 : -1;
       const piece = parsed.board.get(square);
       if (piece) {
         td.classList.add("has-piece", "piece-" + piece.color);
         td.textContent = GLYPH[piece.color === "w" ? piece.piece.toUpperCase() : piece.piece];
-        td.setAttribute("aria-label", square + ", " + pieceLabel(piece, lang));
+        // «Белая ладья A1» — фигура перед координатой, как в шахматной нотации.
+        const label = pieceLabel(piece, lang);
+        td.setAttribute("aria-label", label.charAt(0).toUpperCase() + label.slice(1) + " " + square.toUpperCase());
       } else {
         td.textContent = " ";
-        td.setAttribute("aria-label", square + ", " + t.empty);
+        td.setAttribute("aria-label", square.toUpperCase());
       }
       tr.appendChild(td);
     }
@@ -362,6 +368,7 @@ class ChessboardElement extends HTMLElement {
     this._positions = null;
     this._idx = 0;
     this._timer = null;
+    this._activeSquare = "a8"; // roving tabindex: клетка, с которой начинают навигацию стрелками
     this._root = this.attachShadow ? null : this; // Shadow DOM отключён: таблица должна оставаться в светлом DOM для скринридеров.
   }
 
@@ -480,7 +487,18 @@ class ChessboardElement extends HTMLElement {
     if (!this._positions) return;
     const pos = this._positions[Math.min(this._idx, this._positions.length - 1)];
     const parsed = parseFen(pos.fen);
-    this._tableWrap.replaceChildren(renderTable(parsed, lang));
+
+    const activeEl = document.activeElement;
+    const hadCellFocus = !!(activeEl && activeEl.closest && activeEl.closest("td") && this._tableWrap.contains(activeEl));
+    const table = renderTable(parsed, lang, { activeSquare: this._activeSquare });
+    this._tableWrap.replaceChildren(table);
+    table.addEventListener("keydown", (e) => this._onBoardKeydown(e));
+    // Фокус был на клетке — восстанавливаем на той же координате после перерисовки.
+    if (hadCellFocus) {
+      const td = table.querySelector(`td[data-square="${this._activeSquare}"]`);
+      if (td) td.focus();
+    }
+
     this._summary.textContent = fenSummary(parsed, lang);
     this._updateButtons();
     if (announce) {
@@ -492,6 +510,30 @@ class ChessboardElement extends HTMLElement {
         speak(this._live, text);
       }
     }
+  }
+
+  // Стрелки ходят по клеткам доски. Озвучку каждой клетки скринридер читает
+  // из aria-label при приходе фокуса (roving tabindex) — отдельный speak не нужен.
+  _onBoardKeydown(e) {
+    const dirs = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+    const d = dirs[e.key];
+    if (!d) return;
+    e.preventDefault();
+    const rankIdx = RANKS.indexOf(this._activeSquare[1]);
+    const fileIdx = FILES.indexOf(this._activeSquare[0]);
+    const nr = rankIdx + d[0];
+    const nf = fileIdx + d[1];
+    if (nr < 0 || nr > 7 || nf < 0 || nf > 7) return;
+    this._activeSquare = FILES[nf] + RANKS[nr];
+    this._applyActiveTabindex();
+  }
+
+  _applyActiveTabindex() {
+    for (const c of this._tableWrap.querySelectorAll("td")) {
+      c.tabIndex = c.dataset.square === this._activeSquare ? 0 : -1;
+    }
+    const target = this._tableWrap.querySelector(`td[data-square="${this._activeSquare}"]`);
+    if (target) target.focus();
   }
 
   _updateButtons() {
