@@ -180,7 +180,7 @@ chessjax-board:fullscreen {
 chessjax-board:fullscreen .chessjax-board {
   width: min(72vh, 92vw);
   margin: 0 auto;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   border-width: 2px;
 }
 
