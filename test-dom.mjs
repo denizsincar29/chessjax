@@ -82,10 +82,12 @@ async function openPage(path) {
   check("fullscreen: озвучка «Полноэкранный режим»", liveFs.includes("Полноэкранный"), liveFs);
   const fsBtn = await page.locator('.chessjax-btn[aria-label="Выйти из полноэкранного режима"]').count();
   check("fullscreen: кнопка ⛶ стала «Выйти из…»", fsBtn === 1, "fsBtn=" + fsBtn);
-  await page.keyboard.press("Escape");
+  // Выход тем же путём toggleFullscreen: повторное F → document.exitFullscreen()
+  // (в headless Chromium Escape не вызывает системный выход из fullscreen).
+  await page.keyboard.press("f");
   await page.waitForTimeout(400);
   const fsOff = await page.evaluate(() => document.fullscreenElement);
-  check("fullscreen: эскейп выключает режим", fsOff === null, "fullscreenElement=" + fsOff);
+  check("fullscreen: повторное F выключает режим", fsOff === null, "fullscreenElement=" + fsOff);
   const liveFsOff = await page.locator(".chessjax-live").textContent();
   check("fullscreen: озвучка выключения", liveFsOff.includes("выключен"), liveFsOff);
 
