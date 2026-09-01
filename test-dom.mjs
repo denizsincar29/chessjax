@@ -115,16 +115,21 @@ async function openPage(path) {
   const cur2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
   check("стрелка вверх: a7 → a8", cur2 === "a8", cur2);
 
-  // Стрелки ←/→ — как ↑/↓, по клеткам (roving tabindex): a8 → h8 → g8.
+  // Стрелки ←/→ — как ↑/↓, по клеткам (roving tabindex): a8 → b8 → a8, h8 → g8.
   await page.locator('.chessjax-cell[data-square="a8"]').focus();
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(80);
   const curR = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("стрелка вправо: a8 → h8", curR === "h8", curR);
+  check("стрелка вправо: a8 → b8", curR === "b8", curR);
   await page.keyboard.press("ArrowLeft");
   await page.waitForTimeout(80);
   const curL = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("стрелка влево: h8 → g8", curL === "g8", curL);
+  check("стрелка влево: b8 → a8", curL === "a8", curL);
+  await page.locator('.chessjax-cell[data-square="h8"]').focus();
+  await page.keyboard.press("ArrowLeft");
+  await page.waitForTimeout(80);
+  const curL2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
+  check("стрелка влево: h8 → g8", curL2 === "g8", curL2);
 
   // Ctrl+←/→ — перемотка ходов с озвучкой фигуры. Доска на 10-м ходу белых
   // (10.Nxb5); вправо → 10...cxb5 (чёрные), влево → снова белые.
