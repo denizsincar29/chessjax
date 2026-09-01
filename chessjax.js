@@ -40,11 +40,18 @@ const I18N = {
     restart: "В начало",
     intro: "Шахматная доска. Для взаимодействия включите режим редактирования NVDA или режим форм JAWS. Клавиша H — инструкция по управлению.",
     help: [
-      "Навигация. Стрелки вверх и вниз — перейти на соседнюю клетку. Стрелки влево и вправо — предыдущий и следующий ход. На клетке с фигурой вы услышите фигуру и координаты.",
+      "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты.",
+      "Ходы и комментарии. Контрол и стрелки влево и вправо — предыдущий и следующий ход. Ход озвучивается фигурой и координатами, после него читается комментарий из записи партии.",
       "Воспроизведение. Пробел — автоматический просмотр ходов с начала партии. Контрол и пробел — продолжить с текущего хода, повторное нажатие — пауза.",
-      "Кнопки и эта справка. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
+      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
     ],
     helpEnd: "Инструкция закрыта.",
+    commentLabel: "Комментарий",
+    variationLabel: "Вариант",
+    pressV: "есть вариант — клавиша V проиграть",
+    noVariation: "У этого хода нет варианта.",
+    variationEnd: "Финал варианта",
+    variationExit: "Выход из варианта",
     by: { w: "Белые", b: "Чёрные" },
     takes: "бьёт",
     castleShort: "короткая рокировка",
@@ -75,11 +82,18 @@ const I18N = {
     restart: "Back to start",
     intro: "Chessboard. To interact, switch NVDA to focus mode or JAWS to forms mode. Press H for usage instructions.",
     help: [
-      "Navigation. Arrow up and down move to the neighbouring square. Arrow left and right step to the previous and next move. On a square you hear the piece and its coordinates.",
+      "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates.",
+      "Moves and comments. Control plus arrow left and right step to the previous and next move. Each move is announced with the piece and squares, followed by the comment from the game record.",
       "Playback. Space starts automatic playthrough from the beginning of the game. Control plus space continues from the current move; pressing again pauses.",
-      "Buttons and this help. Below the board: restart, previous move, play, next move. Press H for the next help section; after the last one it closes.",
+      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move. Press H for the next help section; after the last one it closes.",
     ],
     helpEnd: "Help closed.",
+    commentLabel: "Comment",
+    variationLabel: "Variation",
+    pressV: "a variation is available — press V to play it",
+    noVariation: "This move has no variation.",
+    variationEnd: "Variation end",
+    variationExit: "Left the variation",
     by: { w: "White", b: "Black" },
     takes: "takes",
     castleShort: "short castling",
@@ -110,11 +124,18 @@ const I18N = {
     restart: "Zum Anfang",
     intro: "Schachbrett. Zum Bedienen NVDA in den Fokusmodus oder JAWS in den Formularmodus schalten. Taste H — Bedienungsanleitung.",
     help: [
-      "Navigation. Pfeil hoch und runter — benachbarte Felder. Pfeil links und rechts — vorheriger und nächster Zug. Auf einem Feld hören Sie die Figur und die Koordinaten.",
+      "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten.",
+      "Züge und Kommentare. Strg plus Pfeil links und rechts — vorheriger und nächster Zug. Der Zug wird mit Figur und Feldern angesagt, danach der Kommentar aus der Partie.",
       "Wiedergabe. Leertaste — automatisches Abspielen der Züge von Anfang an. Strg und Leertaste — vom aktuellen Zug weiter; erneut drücken — Pause.",
-      "Tasten und diese Hilfe. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
+      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
     ],
     helpEnd: "Hilfe geschlossen.",
+    commentLabel: "Kommentar",
+    variationLabel: "Variante",
+    pressV: "eine Variante ist verfügbar — Taste V zum Abspielen",
+    noVariation: "Dieser Zug hat keine Variante.",
+    variationEnd: "Varianten-Ende",
+    variationExit: "Variante verlassen",
     by: { w: "Weiß", b: "Schwarz" },
     takes: "schlägt",
     castleShort: "kurze Rochade",
@@ -145,11 +166,18 @@ const I18N = {
     restart: "Başa dön",
     intro: "Satranç tahtası. Etkileşim için NVDA'da odak moduna veya JAWS'ta form moduna geçin. Kullanım talimatları için H tuşu.",
     help: [
-      "Gezinme. Yukarı ve aşağı oklar — komşu kareye geçer. Sol ve sağ oklar — önceki ve sonraki hamle. Taş olan karede taşı ve koordinatları duyarsınız.",
+      "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız.",
+      "Hamleler ve yorumlar. Kontrol ve sol/sağ oklar — önceki ve sonraki hamle. Hamle taş ve karelerle okunur, ardından kayıttaki yorum söylenir.",
       "Oynatma. Boşluk — hamleleri baştan otomatik oynatır. Kontrol ve boşluk — mevcut hamleden devam eder; tekrar basın — duraklatır.",
-      "Düğmeler ve bu yardım. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
+      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
     ],
     helpEnd: "Yardım kapatıldı.",
+    commentLabel: "Yorum",
+    variationLabel: "Varyant",
+    pressV: "varyant var — oynatmak için V tuşu",
+    noVariation: "Bu hamlenin varyantı yok.",
+    variationEnd: "Varyant sonu",
+    variationExit: "Varyanttan çıkıldı",
     by: { w: "Beyaz", b: "Siyah" },
     takes: "alır",
     castleShort: "kısa rok",
@@ -275,6 +303,77 @@ export async function applyPgn(sanMoves, startFen = START_FEN) {
   return positions;
 }
 
+// Извлекает из комментария $[ … ] — альтернативную линию (SAN-ходы варианта).
+// Остаток текста остаётся читаемым комментарием.
+export function splitComment(text) {
+  const m = /\$\[([^\]]*)\]/.exec(text || "");
+  if (!m) return { comment: (text || "").trim() || null, variation: null };
+  const variation = m[1].split(/\s+/).filter(Boolean);
+  const rest = (text.replace(m[0], "") || "").trim() || null;
+  return { comment: rest, variation };
+}
+
+// Применяет PGN целиком, сохраняя комментарии ({…}) и варианты ($[…]) из
+// встроенного парсера chess.js (get_comments). Вариант заменяет ход, после
+// которого стоит комментарий: играется с позиции до хода (move.before) и
+// хранится как массив move-объектов. При сбое парсинга — старый путь без
+// комментариев (applyPgn). Возвращает массив {fen, move, comment, variation,
+// variationFen}; элемент 0 — начальная позиция.
+export async function applyPgnFull(pgn, startFen = START_FEN) {
+  const Chess = await engine();
+  const mk = () => [{ fen: null, move: null, comment: null, variation: null, variationFen: null }];
+  const positions = mk();
+  const chess = new Chess(startFen);
+  positions[0].fen = chess.fen();
+
+  let sanMoves = null;
+  let byFen = new Map();
+  if (typeof chess.load_pgn === "function") {
+    try {
+      const ok = chess.load_pgn(pgn, { sloppy: true });
+      if (ok) {
+        // load_pgn не хранит before/after в verbose-истории — воспроизводим
+        // ходы своим движком, чтобы у каждого move были координаты хода.
+        sanMoves = chess.history({ verbose: true }).map((m) => m.san);
+        for (const c of chess.get_comments()) {
+          const { comment, variation } = splitComment(c.comment);
+          byFen.set(c.fen, { comment, variation });
+        }
+      }
+    } catch { /* фолбэк ниже */ }
+  }
+  if (sanMoves === null) sanMoves = parsePgnMoves(pgn);
+
+  const chess2 = new Chess(startFen);
+  positions.length = 1;
+  positions[0].fen = chess2.fen();
+  for (const san of sanMoves) {
+    // У chess.js 0.13.4 move-объекты не хранят before/after — фен позиции
+    // до хода снимаем сами, до применения.
+    const beforeFen = chess2.fen();
+    const move = chess2.move(san);
+    if (!move) break;
+    const afterFen = chess2.fen();
+    const ann = byFen.get(afterFen);
+    let variation = null;
+    let variationFen = null;
+    if (ann && ann.variation) {
+      // Вариант = альтернатива ходу move: стартует из позиции до него.
+      const chessV = new Chess(beforeFen);
+      variation = [];
+      for (const vs of ann.variation) {
+        const vm = chessV.move(vs);
+        if (!vm) break;
+        variation.push({ ...vm, before: beforeFen, after: chessV.fen() });
+      }
+      if (variation.length === 0) variation = null;
+      else variationFen = beforeFen;
+    }
+    positions.push({ fen: afterFen, move, comment: ann ? ann.comment : null, variation, variationFen });
+  }
+  return positions;
+}
+
 // Позиция после moveSpec: "25" — после 25-го хода белых, "25.5" — после ответа чёрных.
 export function positionIndex(moveSpec) {
   if (moveSpec === "0" || moveSpec === "start") return 0;
@@ -298,6 +397,7 @@ export function renderBoard(container, fen, opts = {}) {
 // скринридер читает только его. Заголовки не нужны: координату несёт сама клетка.
 function renderGrid(parsed, lang, opts = {}) {
   const activeSquare = opts.activeSquare;
+  const highlight = opts.highlight; // Set квадратов хода варианта — подсветка
   const board = document.createElement("div");
   board.className = "chessjax-board";
 
@@ -308,6 +408,7 @@ function renderGrid(parsed, lang, opts = {}) {
       const square = file + rank;
       const cell = document.createElement("div");
       cell.className = "chessjax-cell " + ((f + r) % 2 === 0 ? "square-dark" : "square-light");
+      if (highlight && highlight.has(square)) cell.classList.add("variant-highlight");
       cell.dataset.square = square;
       // roving tabindex: только активная клетка в порядке таба, остальные доступны стрелками.
       cell.tabIndex = square === activeSquare ? 0 : -1;
@@ -431,6 +532,7 @@ class ChessboardElement extends HTMLElement {
     this._idx = 0;
     this._timer = null;
     this._helpIdx = 0; // 0 = справка закрыта; 1..N = открыт раздел
+    this._variant = null; // режим варианта: {positions, idx} альтернативной линии
     this._activeSquare = "a8"; // roving tabindex: клетка, с которой начинают навигацию стрелками
     this._root = this.attachShadow ? null : this; // Shadow DOM отключён: таблица должна оставаться в светлом DOM для скринридеров.
   }
@@ -520,7 +622,7 @@ class ChessboardElement extends HTMLElement {
         const res = await fetch(pgnSrc);
         if (!res.ok) throw new Error("HTTP " + res.status);
         const pgn = await res.text();
-        this._positions = await applyPgn(parsePgnMoves(pgn));
+        this._positions = await applyPgnFull(pgn);
       } catch (e) {
         this._positions = null;
         this._renderError("PGN: " + e.message);
@@ -558,15 +660,27 @@ class ChessboardElement extends HTMLElement {
     if (this._live) speak(this._live, msg);
   }
 
+  // Текущая позиция: в режиме варианта — ход варианта, иначе — ход партии.
+  get _current() {
+    return this._variant
+      ? this._variant.positions[this._variant.idx]
+      : this._positions[Math.min(this._idx, this._positions.length - 1)];
+  }
+
   _show({ announce = false } = {}) {
     const lang = this.lang;
     if (!this._positions) return;
-    const pos = this._positions[Math.min(this._idx, this._positions.length - 1)];
+    const t = I18N[lang] || I18N.ru;
+    const pos = this._current;
     const parsed = parseFen(pos.fen);
+
+    // Подсветка клеток хода варианта (откуда → куда) — визуальная пометка.
+    let highlight = null;
+    if (this._variant && pos.move) highlight = new Set([pos.move.from, pos.move.to]);
 
     const activeEl = document.activeElement;
     const hadCellFocus = !!(activeEl && activeEl.closest && activeEl.closest(".chessjax-cell") && this._tableWrap.contains(activeEl));
-    const grid = renderGrid(parsed, lang, { activeSquare: this._activeSquare });
+    const grid = renderGrid(parsed, lang, { activeSquare: this._activeSquare, highlight });
     this._tableWrap.replaceChildren(grid);
     // Фокус был на клетке — восстанавливаем на той же координате после перерисовки.
     if (hadCellFocus) {
@@ -577,48 +691,75 @@ class ChessboardElement extends HTMLElement {
     this._summary.textContent = fenSummary(parsed, lang);
     this._updateButtons();
     if (announce) {
-      if (this._idx === 0) speak(this._live, I18N[lang].start);
+      if (this._variant) {
+        if (pos.move) {
+          let text = t.variationLabel + ": " + moveSpeech(pos.move, lang);
+          if (this._variant.idx === 1 && this._variant.comment) text += ". " + this._variant.comment;
+          if (this._variant.idx === this._variant.positions.length - 1) text += ". " + t.variationEnd;
+          speak(this._live, text);
+        } else speak(this._live, t.variationLabel);
+      } else if (this._idx === 0) speak(this._live, t.start);
       else {
         // «Ход N» одинаков для пары полуходов (белые+чёрные): номер меняется
         // только с новым ходом. Цвет и фигура — в самом описании хода.
-        const text = I18N[lang].move + " " + Math.ceil(this._idx / 2) + ": " +
-          moveSpeech(this._positions[this._idx].move, lang);
+        let text = t.move + " " + Math.ceil(this._idx / 2) + ": " + moveSpeech(pos.move, lang);
+        if (pos.comment) text += ". " + t.commentLabel + ": " + pos.comment;
+        if (pos.variation && pos.variation.length) text += ". " + t.pressV;
         speak(this._live, text);
       }
     }
   }
 
   // Клавиши доски (фокус на клетке, NVDA в режиме форм):
-  //   ↑/↓ — по клеткам; ←/→ — перемотка ходов (озвучка + звук);
+  //   ↑/↓/←/→ — по клеткам; Ctrl+←/→ — перемотка ходов (озвучка + звук);
   //   Пробел — автопросмотр с начала; Ctrl+Пробел — с текущего хода / пауза;
+  //   V — проиграть вариант (повторно — финал); Esc — выйти из варианта;
   //   H — справка по разделам.
   _onBoardKeydown(e) {
     const key = e.key;
-    if (key === "ArrowUp" || key === "ArrowDown") {
+    const mod = e.ctrlKey || e.metaKey;
+    if ((key === "ArrowUp" || key === "ArrowDown" || key === "ArrowLeft" || key === "ArrowRight") && !mod && !e.altKey) {
       e.preventDefault();
-      const dir = key === "ArrowUp" ? -1 : 1;
+      let dr = 0, df = 0;
+      if (key === "ArrowUp") dr = -1;
+      else if (key === "ArrowDown") dr = 1;
+      else if (key === "ArrowLeft") df = -1;
+      else df = 1;
       const rankIdx = RANKS.indexOf(this._activeSquare[1]);
       const fileIdx = FILES.indexOf(this._activeSquare[0]);
-      const nr = rankIdx + dir;
-      if (nr < 0 || nr > 7) return;
-      this._activeSquare = FILES[fileIdx] + RANKS[nr];
+      const nr = rankIdx + dr;
+      const nf = fileIdx + df;
+      if (nr < 0 || nr > 7 || nf < 0 || nf > 7) return;
+      this._activeSquare = FILES[nf] + RANKS[nr];
       this._applyActiveTabindex();
       return;
     }
-    if (key === "ArrowLeft" || key === "ArrowRight") {
+    if ((key === "ArrowLeft" || key === "ArrowRight") && mod) {
       e.preventDefault();
       if (key === "ArrowLeft") this.prev();
       else this.next();
       return;
     }
-    if (key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if (key === " " && !mod && !e.altKey) {
       e.preventDefault();
       this.playFromStart();
       return;
     }
-    if (key === " " && (e.ctrlKey || e.metaKey)) {
+    if (key === " " && mod) {
       e.preventDefault();
       this.togglePlay();
+      return;
+    }
+    if (key === "v" || key === "V") {
+      e.preventDefault();
+      this.toggleVariation();
+      return;
+    }
+    if (key === "Escape") {
+      if (this._variant) {
+        e.preventDefault();
+        this.exitVariation();
+      }
       return;
     }
     if (key === "h" || key === "H") {
@@ -633,6 +774,7 @@ class ChessboardElement extends HTMLElement {
       clearInterval(this._timer);
       this._timer = null;
     }
+    this._variant = null;
     this._idx = 0;
     this._show({ announce: true }); // сразу «Начальная позиция», дальше тики озвучивают ходы
     this.togglePlay();
@@ -656,6 +798,34 @@ class ChessboardElement extends HTMLElement {
     speak(this._live, text);
   }
 
+  // V: вход в вариант (альтернативная линия текущего хода), повторное V —
+  // финал, Esc — выход. Вариант играется с позиции ДО хода (variationFen),
+  // заменяя его; после него озвучивается комментарий автора.
+  toggleVariation() {
+    const t = I18N[this.lang] || I18N.ru;
+    if (this._variant) {
+      this._variant.idx = this._variant.positions.length - 1;
+      this._show({ announce: true });
+      return;
+    }
+    const pos = this._current;
+    if (!pos || !pos.variation || !pos.variationFen) {
+      speak(this._live, t.noVariation);
+      return;
+    }
+    const positions = [{ fen: pos.variationFen, move: null }];
+    for (const m of pos.variation) positions.push({ fen: m.after, move: m });
+    this._variant = { positions, idx: 1, comment: pos.comment };
+    this._show({ announce: true });
+  }
+
+  exitVariation() {
+    const t = I18N[this.lang] || I18N.ru;
+    this._variant = null;
+    this._show({ announce: false });
+    speak(this._live, t.variationExit);
+  }
+
   // Овервью — при входе фокуса на доску снаружи (не при переходе между клетками).
   _onFocusIn(e) {
     const rt = e.relatedTarget;
@@ -672,11 +842,21 @@ class ChessboardElement extends HTMLElement {
     if (target) target.focus();
   }
 
+  _atStart() {
+    return this._variant ? this._variant.idx <= 0 : this._idx <= 0;
+  }
+
+  _atEnd() {
+    return this._variant
+      ? this._variant.idx >= this._variant.positions.length - 1
+      : this._idx >= this._positions.length - 1;
+  }
+
   _updateButtons() {
     if (!this._positions) return;
-    this._btnPrev.disabled = this._idx <= 0;
-    this._btnNext.disabled = this._idx >= this._positions.length - 1;
-    this._btnRestart.disabled = this._idx === 0;
+    this._btnPrev.disabled = this._atStart();
+    this._btnNext.disabled = this._atEnd();
+    this._btnRestart.disabled = this._idx === 0 && !this._variant;
   }
 
   // Звук хода. Рокировка — король + отложенная ладья; взятие — отдельный
@@ -684,7 +864,7 @@ class ChessboardElement extends HTMLElement {
   // sound="off" отключает все звуки на доске.
   _playMoveSound(move = null) {
     if (this.getAttribute("sound") === "off") return;
-    const m = move || (this._positions && this._positions[this._idx] && this._positions[this._idx].move);
+    const m = move || (this._current && this._current.move);
     if (!m) return;
     const flags = m.flags || "";
     if (flags.includes("k") || flags.includes("q")) {
@@ -701,6 +881,7 @@ class ChessboardElement extends HTMLElement {
 
   goTo(moveSpec, opts = {}) {
     const prevIdx = this._idx;
+    this._variant = null; // внешний переход всегда в основной линии партии
     const target = positionIndex(moveSpec);
     if (this._positions) this._idx = Math.min(target, this._positions.length - 1);
     this._show({ announce: opts.silent ? false : true });
@@ -710,7 +891,16 @@ class ChessboardElement extends HTMLElement {
   }
 
   next() {
-    if (this._positions && this._idx < this._positions.length - 1) {
+    if (!this._positions) return;
+    if (this._variant) {
+      if (this._variant.idx < this._variant.positions.length - 1) {
+        this._variant.idx += 1;
+        this._show({ announce: true });
+        this._playMoveSound();
+      }
+      return;
+    }
+    if (this._idx < this._positions.length - 1) {
       this._idx += 1;
       this._show({ announce: true });
       this._playMoveSound();
@@ -718,7 +908,17 @@ class ChessboardElement extends HTMLElement {
   }
 
   prev() {
-    if (this._positions && this._idx > 0) {
+    if (!this._positions) return;
+    if (this._variant) {
+      if (this._variant.idx > 0) {
+        const undone = this._variant.positions[this._variant.idx].move; // звук отыгранного хода
+        this._variant.idx -= 1;
+        this._show({ announce: true });
+        this._playMoveSound(undone);
+      }
+      return;
+    }
+    if (this._idx > 0) {
       const undone = this._positions[this._idx].move; // звук отыгранного хода
       this._idx -= 1;
       this._show({ announce: true });
@@ -734,9 +934,12 @@ class ChessboardElement extends HTMLElement {
       this._btnPlay.setAttribute("aria-label", I18N[this.lang].play);
       return;
     }
-    if (this._idx >= this._positions.length - 1) this._idx = 0;
+    if (this._atEnd()) {
+      if (this._variant) this._variant.idx = 0;
+      else this._idx = 0;
+    }
     const step = () => {
-      if (this._idx >= this._positions.length - 1) {
+      if (this._atEnd()) {
         this.togglePlay();
         return;
       }
@@ -800,6 +1003,8 @@ export const chessjax = {
   fenSummary,
   parsePgnMoves,
   applyPgn,
+  applyPgnFull,
+  splitComment,
   positionIndex,
 };
 

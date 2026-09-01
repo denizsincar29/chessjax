@@ -115,25 +115,36 @@ async function openPage(path) {
   const cur2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
   check("стрелка вверх: a7 → a8", cur2 === "a8", cur2);
 
-  // Стрелки ←/→ — перемотка ходов с озвучкой фигуры. Доска на 10-м ходу белых
-  // (10.Nxb5); вправо → 10...cxb5 (чёрные), влево → снова белые.
+  // Стрелки ←/→ — как ↑/↓, по клеткам (roving tabindex): a8 → h8 → g8.
+  await page.locator('.chessjax-cell[data-square="a8"]').focus();
   await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(80);
+  const curR = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
+  check("стрелка вправо: a8 → h8", curR === "h8", curR);
+  await page.keyboard.press("ArrowLeft");
+  await page.waitForTimeout(80);
+  const curL = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
+  check("стрелка влево: h8 → g8", curL === "g8", curL);
+
+  // Ctrl+←/→ — перемотка ходов с озвучкой фигуры. Доска на 10-м ходу белых
+  // (10.Nxb5); вправо → 10...cxb5 (чёрные), влево → снова белые.
+  await page.keyboard.press("Control+ArrowRight");
   await page.waitForTimeout(250);
   const liveR = await page.locator(".chessjax-live").textContent();
-  check("стрелка вправо: ход 10, чёрные (взятие с фигурой)", liveR.includes("10") && liveR.includes("чёрная"), liveR);
-  await page.keyboard.press("ArrowLeft");
+  check("Ctrl+вправо: ход 10, чёрные (взятие с фигурой)", liveR.includes("10") && liveR.includes("чёрная"), liveR);
+  await page.keyboard.press("Control+ArrowLeft");
   await page.waitForTimeout(250);
   const liveL = await page.locator(".chessjax-live").textContent();
-  check("стрелка влево: ход 10, белые", liveL.includes("10") && liveL.includes("белый"), liveL);
-  check("стрелка влево: названа фигура (конь)", liveL.includes("конь"), liveL);
+  check("Ctrl+влево: ход 10, белые", liveL.includes("10") && liveL.includes("белый"), liveL);
+  check("Ctrl+влево: названа фигура (конь)", liveL.includes("конь"), liveL);
 
-  // Фокус остаётся на той же клетке после смены хода стрелкой.
-  await page.keyboard.press("ArrowDown"); // a8 → a7
+  // Фокус остаётся на той же клетке после смены хода Ctrl+стрелкой.
+  await page.keyboard.press("ArrowDown"); // g8 → g7
   await page.waitForTimeout(80);
-  await page.keyboard.press("ArrowRight"); // смена хода, фокус должен вернуться на a7
+  await page.keyboard.press("Control+ArrowRight"); // смена хода, фокус должен вернуться на g7
   await page.waitForTimeout(250);
   const still = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("фокус восстановлен на a7 после смены хода стрелкой", still === "a7", still);
+  check("фокус восстановлен на g7 после смены хода Ctrl+стрелкой", still === "g7", still);
 
   // Справка по H: разделы листаются по кругу, после последнего — закрытие.
   await page.locator('.chessjax-cell[data-square="a7"]').focus();
@@ -146,7 +157,11 @@ async function openPage(path) {
   await page.keyboard.press("h");
   await page.waitForTimeout(150);
   const help2 = await page.locator(".chessjax-live").textContent();
-  check("H: раздел воспроизведения", help2.includes("Пробел"), help2);
+  check("H: раздел ходов и комментариев", help2.includes("Комментарий") && help2.includes("контрол"), help2);
+  await page.keyboard.press("h");
+  await page.waitForTimeout(150);
+  const help3 = await page.locator(".chessjax-live").textContent();
+  check("H: раздел воспроизведения", help3.includes("Пробел"), help3);
   await page.keyboard.press("h");
   await page.keyboard.press("h");
   await page.waitForTimeout(150);
@@ -185,6 +200,61 @@ async function openPage(path) {
   check("story: prev озвучил 15-й ход", livePrev.includes("15"), livePrev);
 
   check("story: нет pageerrors", errors.length === 0, errors.join(" | "));
+  await page.close();
+}
+
+// --- examples/variations.html: комментарии + $[…] вариант ---------------------
+
+{
+  const { page, errors } = await openPage("/examples/variations.html");
+  await page.waitForTimeout(400);
+
+  // Доска стартует на move=2 → после 2.Nf3; там комментарий и вариант.
+  await page.locator('.chessjax-cell[data-square="a8"]').focus();
+  await page.waitForTimeout(200);
+
+  // Назад-вперёд, чтобы озвучился ход 2.Nf3 с комментарием.
+  await page.keyboard.press("Control+ArrowLeft");
+  await page.waitForTimeout(200);
+  await page.keyboard.press("Control+ArrowRight");
+  await page.waitForTimeout(250);
+  const liveC = await page.locator(".chessjax-live").textContent();
+  check("var: комментарий после 2.Nf3 озвучен", liveC.includes("Комментарий") && liveC.includes("итальянская партия"), liveC);
+  check("var: подсказка «клавиша V»", liveC.includes("клавиша V"), liveC);
+
+  // V — вход в вариант: первый ход Bc4, слон на c4, клетки хода подсвечены.
+  await page.keyboard.press("v");
+  await page.waitForTimeout(250);
+  const liveV = await page.locator(".chessjax-live").textContent();
+  check("var: V — «Вариант: Слон…»", liveV.includes("Вариант") && liveV.includes("Слон"), liveV);
+  const c4 = await page.locator('.chessjax-cell[data-square="c4"]').getAttribute("aria-label");
+  check("var: слон белых на c4", c4 === "Белый слон C4", c4);
+  const hlTo = await page.locator('.chessjax-cell[data-square="c4"]').evaluate((el) => el.classList.contains("variant-highlight"));
+  check("var: клетка c4 подсвечена", hlTo, "no highlight on c4");
+  const hlFrom = await page.locator('.chessjax-cell[data-square="f1"]').evaluate((el) => el.classList.contains("variant-highlight"));
+  check("var: клетка f1 подсвечена (from)", hlFrom, "no highlight on f1");
+
+  // V повторно — финал варианта (последний ход Nc6).
+  await page.keyboard.press("v");
+  await page.waitForTimeout(250);
+  const liveEnd = await page.locator(".chessjax-live").textContent();
+  check("var: повторное V — финал варианта", liveEnd.includes("Финал"), liveEnd);
+
+  // Esc — выход из варианта, возврат в основную линию.
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(250);
+  const liveEsc = await page.locator(".chessjax-live").textContent();
+  check("var: Esc — выход из варианта", liveEsc.includes("Выход из варианта"), liveEsc);
+
+  // Ход без варианта: V → «У этого хода нет варианта.»
+  await page.keyboard.press("Control+ArrowRight"); // после 2...Nc6 — варианта нет
+  await page.waitForTimeout(250);
+  await page.keyboard.press("v");
+  await page.waitForTimeout(250);
+  const liveNo = await page.locator(".chessjax-live").textContent();
+  check("var: V на ход без варианта — «нет варианта»", liveNo.includes("нет варианта"), liveNo);
+
+  check("var: нет pageerrors", errors.length === 0, errors.join(" | "));
   await page.close();
 }
 

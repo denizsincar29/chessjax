@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14181c">
+<link rel="icon" href="data:,">
+<title>chessjax — комментарии и варианты</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<header>
+  <h1>chessjax — комментарии и варианты</h1>
+  <p>Комментарии озвучиваются после хода; <code>$[...]</code> внутри комментария — альтернативная линия.</p>
+</header>
+
+<main>
+  <section aria-labelledby="demo-heading">
+    <h2 id="demo-heading">Итальянская партия с вариантами</h2>
+    <chessjax-board pgn="variations.pgn" move="2"></chessjax-board>
+    <p class="hint">После хода с комментарием NVDA назовёт «есть вариант — клавиша V проиграть».
+    V входит в вариант (повторно — финал), Esc выходит, Ctrl+←/→ листают ходы варианта.
+    Ходы варианта подсвечены оранжевой рамкой.</p>
+  </section>
+</main>
+
+<script type="module">
+  import "../chessjax.js";
+</script>
+</body>
+</html>
