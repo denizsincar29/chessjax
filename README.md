@@ -1,155 +1,139 @@
 # chessjax
 
-JS library to view chessboards on webpages and read them using screenreaders.
-«MathJax для шахмат»: семантическая HTML-таблица + озвучка ходов для NVDA.
+Accessible chess boards for the web. Renders a position as a semantic table a
+screen reader can navigate, and speaks every move — designed for NVDA.
 
-## Подключение
+## Install
 
-Самодостаточное — один модуль, движок ходов (chess.js 0.13.4) вендорен в `vendor/`.
-Локально:
+Self-contained module; the move engine (chess.js) is vendored in `vendor/`.
+Local:
 
 ```html
 <script type="module" src="chessjax.js"></script>
 ```
 
-Или с CDN (jsdelivr, пин на тег) — свои зависимости (`vendor/chess.js`) chessjax
-подтягивает сам относительно своего URL:
+Or from CDN (pinned to a tag):
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.5.1/chessjax.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.6.1/chessjax.js"></script>
 ```
 
-## Использование
+## Usage
 
 ```html
 <chessjax-board pgn="morphy.pgn" move="10"></chessjax-board>
 <chessjax-board fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"></chessjax-board>
 ```
 
-Имя кастомного элемента обязано содержать дефис (`<chessboard>` невалиден).
-Атрибуты: `fen` (позиция), `pgn`/`pgn-src` (партия, `move="N"` — показать N-й ход
-белых, `"N.5"` — после ответа чёрных), `lang`, `controls="none"`.
+Custom element names must contain a hyphen. Attributes: `fen` (position),
+`pgn` (game; `move="N"` jumps to white's Nth move, `"N.5"` after Black's
+reply), `lang`, `controls="off"`, `sound="off"`, `tone="off"`.
 
-Кнопки в тексте переключают доску по id:
+Buttons in page text jump the board by id:
 
 ```html
 <chessjax-board id="carlsen" pgn="Carlsen.pgn" move="25"></chessjax-board>
-<p>После <button chess="carlsen" move="29">29-го хода</button> ферзю стало некуда деваться.</p>
+<p>After <button chess="carlsen" move="29">move 29</button> the queen has nowhere to go.</p>
 ```
 
-Язык: `chessjax.setLanguage("ru" | "en" | "de" | "tr")`.
+Language: `chessjax.setLanguage("ru" | "en" | "de" | "tr")`.
 
-## Озвучка ходов
+## Move speech
 
-Каждый ход озвучивается малословно, без номера: «белая пешка e2-e4», «чёрная
-пешка cxb5», «белые, длинная рокировка», «белая ладья d8-d1, мат». Называются
-фигура и цвет, взятие (`c5:d6`), рокировка (короткая/длинная), превращение
-пешки, шах и мат. Номер хода слышен только в паузе авто-шоу: «Остановлено на
-ходе 23 белых».
+Each move is spoken briefly, without a number: "white pawn e2–e4", "black
+pawn c×b5", "white, long castling", "white rook d8–d1, checkmate". The piece
+and color are named; captures, castling, promotion, check and mate are all
+announced. The move number is only heard in the auto-play pause:
+"Stopped at white's move 23".
 
-## Клавиатура и справка
+## Keyboard
 
-Доска — это div-сетка с roving tabindex: одна клетка в фокусе (по умолчанию a8),
-стрелки ходят по доске:
+The board is a div grid with a roving tabindex — one square in focus
+(default a8), arrows move around it:
 
-- **↑/↓/←/→ по клеткам** — перемещение фокуса по доске; каждая клетка
-  озвучивается: фигура — «Чёрная пешка B7», пустая — «E5».
-- **Ctrl/⌘+←/→ по ходам** — перемотка партии: влево — предыдущий ход,
-  вправо — следующий, с озвучкой хода, звуком фигуры и комментарием.
-- **Пробел** — продолжить с текущего хода или пауза (пауза объявляет номер
-  хода: «Остановлено на ходе 23 белых»).
-- **Ctrl/⌘+Пробел** — автопросмотр партии с начала.
-- **Ctrl/⌘+↑/↓** — быстрее/медленнее автопросмотр (скорость озвучивается,
-  интервал 1–6 секунд на ход, шаг 0,5 с).
-- **V** — проиграть альтернативную линию текущего хода (если она есть в
-  комментарии); повторное нажатие — финал, **Esc** — выход из варианта.
-- **F** — увеличить доску на весь экран, повторное нажатие (или Esc) — вернуть.
-  То же делает кнопка **⛶** на панели под доской.
-- **B** — лучший ход в текущей позиции движком Stockfish: оценка и ход движка
-  (см. раздел «Анализ»). Повторное нажатие (или **Esc**) — снять подсветку.
-  То же делает кнопка **★** на панели.
-- **A** — анализ партии: каждый ход при навигации озвучивается с вердиктом
-  движка; цифру преимущества не произносим — её величину маркирует тон
-  (частота растёт с преимуществом). Повторное нажатие — выключить.
-  Удержание **A 2 секунды** — скрытый режим роаста с
-  неформальными вердиктами («Ооо, прекрасно!», «Ход полная хрень!»), повторное
-  удержание — выключить.
-- **H** — инструкция по управлению: открывается по частям (разделы о навигации,
-  ходах и комментариях, автопросмотре, вариантах, анализе), повторное нажатие листает,
-  после последнего раздела справка закрывается.
+- **↑/↓/←/→** — move focus across the board; each square is spoken
+  ("Black pawn b7", empty: "e5").
+- **Ctrl/⌘+←/→** — rewind the game: previous/next move, spoken with a
+  sound and any comment.
+- **Space** — continue from the current move, or pause (pause announces
+  the move number).
+- **Ctrl/⌘+Space** — auto-play the game from the start.
+- **Ctrl/⌘+↑/↓** — speed up / slow down auto-play (1–6 s per move, step 0.5 s).
+- **V** — play the alternative line at the current move (if one exists in
+  the comment); press again for the final line, **Esc** to leave the variation.
+- **F** — fullscreen the board (toggle; same as the ⛶ button).
+- **B** — best move in the current position by Stockfish (see Analysis).
+  Press again or **Esc** to clear the highlight. Same as the ★ button.
+- **A** — analyze the game: every move you navigate is spoken with an
+  engine verdict. Press again to turn off. Hold **A for 2 seconds** — hidden
+  roast mode with informal verdicts; hold again to disable.
+- **H** — help: opens section by section (navigation, moves and comments,
+  auto-play, variations, analysis); press again to page through.
 
-При входе фокуса на доску NVDA/JAWS озвучивают введение: «Шахматная доска. Для
-взаимодействия включите режим редактирования NVDA или режим форм JAWS. Клавиша
-H — инструкция по управлению». Текст разделов локализован (ru/en/de/tr).
+On focus, NVDA/JAWS hear an introduction: "Chess board. To interact, enable
+NVDA's focus mode or JAWS forms mode. Press H for help." All help text is
+localized (ru/en/de/tr).
 
-## Комментарии и варианты
+## Comments and variations
 
-Комментарии из PGN (`{ … }`) привязываются к позиции после хода и озвучиваются
-вместе с ходом: «Ход 2: конь с g1 на f3. Комментарий: …». После хода с
-комментарием добавляется подсказка «есть вариант — клавиша V проиграть».
+PGN comments (`{ … }`) are attached to the position after their move and
+spoken together with it. After a move with a comment you're told a variation
+is available (press **V**).
 
-Альтернативная линия пишется прямо в комментарии в скобках `$[ … ]` — это SAN
-альтернативных ходов, заменяющих аннотированный ход. Вариант стартует с позиции
-ДО этого хода:
+Write an alternative line right in the comment in `$[ … ]` — SAN moves that
+replace the annotated move. The variation starts from the position BEFORE
+that move:
 
 ```
-1. e4 e5 2. Nf3 { $[Bc4 Nc6] итальянская партия — слон давит на f7 } Nc6 …
+1. e4 e5 2. Nf3 { $[Bc4 Nc6] Italian game — bishop pressures f7 } Nc6 …
 ```
 
-Клавиша **V** входит в вариант (озвучивается «Вариант: …» и комментарий автора),
-ходы варианта подсвечены оранжевой рамкой; повторное **V** — финал линии,
-**Esc** — возврат в основную партию. Внутри варианта **Ctrl/⌘+←/→** листают его
-ходы.
+**V** enters the variation (announced as "Variation: …" with the author's
+comment); variation moves get an orange outline; **V** again — the final line,
+**Esc** — back to the main game.
 
-Также управлять можно кнопками-контролами на панели (⏮ ← → ▶ ⛶ ★ Σ) и кнопками
-в тексте (`<button chess="id" move="N">`).
+You can also drive the board with the buttons under it (⏮ ← → ▶ ⛶ ★ Σ) and
+buttons in page text (`<button chess="id" move="N">`).
 
-## Звуки ходов
+## Move sounds
 
-Ходы озвучиваются реалистичными деревянными ударами (WebAudio, файлы в `sound/`,
-подтягиваются с CDN относительно модуля). Навигация вперёд и авто-шоу (▶) играют
-звук хода: рокировка — король + отложенная ладья, взятие — отдельный удар, обычный
-ход — звук конкретной фигуры (пешка звучит легче ладьи, у короля звук тяжёлый).
-Источник записей — sounddino.com (free / royalty-free / no attribution). Отключить:
-`<chessjax-board ... sound="off">`.
+Moves are spoken over realistic wooden tap sounds (WebAudio). Forward
+navigation and auto-play play the move sound: castling is king + delayed rook,
+captures get their own hit, ordinary moves use a piece-specific sound.
+Sources: sounddino.com (free / no attribution). Disable with `sound="off"`.
 
-## Анализ
+## Analysis
 
-Движок — Stockfish (WASM, грузится с jsdelivr лениво — только при первом
-запросе, в отдельном worker'е, не блокирует страницу). Запросы анализа встают в
-очередь и кэшируются по позиции; «лучший ход» (B) обходит очередь приоритетно.
+The engine is Stockfish (WASM, loaded lazily from jsdelivr on first request,
+in a separate worker — it never blocks the page). Analysis requests are
+queued and cached per position; "best move" (B) skips the queue.
 
-**Лучший ход** — клавиша **B** или кнопка **★** на панели: оценка текущей
-позиции и ход движка. Через несколько секунд озвучивается: «Оценка: +0,4.
-Лучший ход: E2-E4», мат — «Мат в 3». Поле лучшего хода подсвечивается синей
-рамкой. Повторное **B** или **Esc** — снять подсветку.
+**Best move** — **B** or the ★ button: evaluates the position and speaks
+"Evaluation: +0.4. Best move: e2–e4" (mate: "Mate in 3"). The best move's
+square gets a blue outline.
 
-**Анализ партии** — клавиша **A** или кнопка **Σ**: при навигации по партии
-(стрелки, автопросмотр ▶, кнопки текста) каждый ход дополнительно озвучивается
-вердиктом движка: «Прекрасный ход», «Хороший ход», «Интересный ход»,
-«Неточность», «Ошибка», «Грубая ошибка». Вердикт сравнивает ход с лучшим ходом
-движка (совпал — «Прекрасный ход») иначе — по потере в оценке: до 20 сотых
-«Хороший ход», до 100 «Интересный ход», до 250 «Неточность», до 500 «Ошибка»,
-больше «Грубая ошибка». Цифру преимущества не проговариваем — её величину
-маркирует звуковой тон (квадратная волна, частота `220·2^(преимущество/2.5)` Гц
-растёт с преимуществом белых, ограничена 70–1500 Гц, с атакой и релизом).
-Отключить тона можно атрибутом `tone="off"` (только тона) или `sound="off"`
-(вся звуковая подсистема). Повторное **A** — выключить.
+**Analyze game** — **A** or the Σ button: each move gets an engine verdict —
+"brilliant", "good", "interesting", "inaccuracy", "mistake", "blunder" (compared
+against the engine's best move; otherwise by evaluation loss). The number is
+never spoken — its magnitude is marked by a tone whose pitch rises with the
+advantage. Disable tones with `tone="off"` (only the tone) or `sound="off"`
+(entire audio subsystem).
 
-**Скрытый режим роаста** — удержание **A** 2 секунды: те же вердикты, но
-неформальные («Ооо, прекрасно!», «Так себе, но вроде ладно...», «Ход полная
-хрень!»). Включает анализ партии, если он был выключен. Повторное удержание —
-выключить.
+**Roast mode** — hold **A** for 2 seconds: same analysis, informal verdicts
+("Oh, beautiful!", "That move is complete nonsense!"). Turn on analysis if it
+was off. Hold again to disable.
 
-## Примеры
+## Examples
 
-- `examples/basic.html` — доски по FEN и PGN, переключатель языка.
-- `examples/story.html` — партия с кнопками-ходами в тексте (Опера-партия Морфи).
-- `examples/variations.html` — комментарии и `$[…]` варианты, клавиши V/Esc.
+- `examples/basic.html` — boards by FEN and PGN, language switch.
+- `examples/story.html` — a game with move buttons in page text (Morphy's Opera Game).
+- `examples/variations.html` — comments and `$[…]` variations, V/Esc keys.
 
-## Тесты
+## Tests
 
-- `test-fen.mjs` — юниты (FEN, PGN, позиции, комментарии, варианты):
-  `node test-fen.mjs`.
-- `test-dom.mjs` — DOM в реальном браузере (playwright + chromium):
-  `playwright install chromium && node test-dom.mjs`.
+- `test-fen.mjs` — units (FEN, PGN, positions, comments, variations): `node test-fen.mjs`.
+- `test-dom.mjs` — DOM in a real browser (playwright + chromium): `playwright install chromium && node test-dom.mjs`.
+
+## License
+
+MIT © 2026 Deniz Sincar.
