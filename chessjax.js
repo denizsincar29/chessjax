@@ -42,12 +42,19 @@ const I18N = {
     exitFullscreen: "Выйти из полноэкранного режима",
     fullscreenOn: "Полноэкранный режим",
     fullscreenOff: "Полноэкранный режим выключен",
+    analyze: "Анализ позиции",
+    analyzing: "Идёт анализ…",
+    score: "Оценка",
+    bestMove: "Лучший ход",
+    mateIn: (n) => "мат в " + n,
+    analysisCleared: "Анализ снят",
+    analysisError: "Анализ: не удалось загрузить движок",
     intro: "Шахматная доска. Для взаимодействия включите режим редактирования NVDA или режим форм JAWS. Клавиша H — инструкция по управлению.",
     help: [
       "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты.",
       "Ходы и комментарии. Контрол и стрелки влево и вправо — предыдущий и следующий ход. Ход озвучивается фигурой и координатами, после него читается комментарий из записи партии.",
       "Воспроизведение. Пробел — автоматический просмотр ходов с начала партии. Контрол и пробел — продолжить с текущего хода, повторное нажатие — пауза.",
-      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
+      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, анализ. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша A — анализ текущей позиции: оценка и лучший ход, повторное нажатие или эскейп — снять подсветку. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
     ],
     helpEnd: "Инструкция закрыта.",
     commentLabel: "Комментарий",
@@ -88,12 +95,19 @@ const I18N = {
     exitFullscreen: "Exit fullscreen",
     fullscreenOn: "Fullscreen mode",
     fullscreenOff: "Fullscreen mode off",
+    analyze: "Analyze position",
+    analyzing: "Analyzing…",
+    score: "Score",
+    bestMove: "Best move",
+    mateIn: (n) => "mate in " + n,
+    analysisCleared: "Analysis cleared",
+    analysisError: "Analysis: could not load engine",
     intro: "Chessboard. To interact, switch NVDA to focus mode or JAWS to forms mode. Press H for usage instructions.",
     help: [
       "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates.",
       "Moves and comments. Control plus arrow left and right step to the previous and next move. Each move is announced with the piece and squares, followed by the comment from the game record.",
       "Playback. Space starts automatic playthrough from the beginning of the game. Control plus space continues from the current move; pressing again pauses.",
-      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen. Press F for fullscreen, press again or escape to exit. Press H for the next help section; after the last one it closes.",
+      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, analysis. Press F for fullscreen, press again or escape to exit. Press A to analyze the current position: score and best move; press again or escape to clear the highlight. Press H for the next help section; after the last one it closes.",
     ],
     helpEnd: "Help closed.",
     commentLabel: "Comment",
@@ -134,12 +148,19 @@ const I18N = {
     exitFullscreen: "Vollbild beenden",
     fullscreenOn: "Vollbildmodus",
     fullscreenOff: "Vollbildmodus aus",
+    analyze: "Position analysieren",
+    analyzing: "Analyse läuft…",
+    score: "Bewertung",
+    bestMove: "Bester Zug",
+    mateIn: (n) => "Matt in " + n,
+    analysisCleared: "Analyse entfernt",
+    analysisError: "Analyse: Engine konnte nicht geladen werden",
     intro: "Schachbrett. Zum Bedienen NVDA in den Fokusmodus oder JAWS in den Formularmodus schalten. Taste H — Bedienungsanleitung.",
     help: [
       "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten.",
       "Züge und Kommentare. Strg plus Pfeil links und rechts — vorheriger und nächster Zug. Der Zug wird mit Figur und Feldern angesagt, danach der Kommentar aus der Partie.",
       "Wiedergabe. Leertaste — automatisches Abspielen der Züge von Anfang an. Strg und Leertaste — vom aktuellen Zug weiter; erneut drücken — Pause.",
-      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
+      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild, Analyse. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste A — aktuelle Position analysieren: Bewertung und bester Zug; erneut drücken oder Escape — Hervorhebung entfernen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
     ],
     helpEnd: "Hilfe geschlossen.",
     commentLabel: "Kommentar",
@@ -180,12 +201,19 @@ const I18N = {
     exitFullscreen: "Tam ekrandan çık",
     fullscreenOn: "Tam ekran modu",
     fullscreenOff: "Tam ekran modu kapalı",
+    analyze: "Pozisyonu analiz et",
+    analyzing: "Analiz ediliyor…",
+    score: "Değerlendirme",
+    bestMove: "En iyi hamle",
+    mateIn: (n) => n + " hamlede mat",
+    analysisCleared: "Analiz kaldırıldı",
+    analysisError: "Analiz: motor yüklenemedi",
     intro: "Satranç tahtası. Etkileşim için NVDA'da odak moduna veya JAWS'ta form moduna geçin. Kullanım talimatları için H tuşu.",
     help: [
       "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız.",
       "Hamleler ve yorumlar. Kontrol ve sol/sağ oklar — önceki ve sonraki hamle. Hamle taş ve karelerle okunur, ardından kayıttaki yorum söylenir.",
       "Oynatma. Boşluk — hamleleri baştan otomatik oynatır. Kontrol ve boşluk — mevcut hamleden devam eder; tekrar basın — duraklatır.",
-      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
+      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran, analiz. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. A tuşu — mevcut pozisyonu analiz eder: değerlendirme ve en iyi hamle; tekrar basmak veya Escape — vurguyu kaldırır. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
     ],
     helpEnd: "Yardım kapatıldı.",
     commentLabel: "Yorum",
@@ -533,6 +561,81 @@ function unlockAudio() {
   if (ctx && ctx.state === "suspended") ctx.resume();
 }
 
+// --- Анализ Stockfish ----------------------------------------------------------
+// Движок — Stockfish 10 (wasm) с jsdelivr (loader 62 КБ + был 358 КБ). Chrome
+// блокирует прямой new Worker(cross-origin), поэтому loader качаем через fetch
+// (у jsdelivr CORS *), в код подставляем абсолютный был-URL и запускаем
+// Blob-worker; был движок качает сам из своего worker'а. Один инстанс на
+// страницу, создаётся лениво — только при первом запросе анализа.
+const SF_LOADER = "https://cdn.jsdelivr.net/npm/stockfish@10.0.2/src/stockfish.js";
+const SF_WASM = "https://cdn.jsdelivr.net/npm/stockfish@10.0.2/src/stockfish.wasm";
+const ANALYSIS_DEPTH = 12;
+
+let analyzerPromise = null;
+let analyzerSeq = 0;
+let activeAnalysis = null; // { seq, board }
+
+function getAnalyzer() {
+  if (!analyzerPromise) analyzerPromise = createAnalyzer();
+  return analyzerPromise;
+}
+
+function createAnalyzer() {
+  return fetch(SF_LOADER)
+    .then((res) => {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.text();
+    })
+    .then((code) => {
+      const marker = "var Module={wasmBinaryFile:WasmPath}";
+      if (!code.includes(marker)) throw new Error("неподдерживаемый loader");
+      code = code.replace(marker, "var Module={wasmBinaryFile:" + JSON.stringify(SF_WASM) + "}");
+      const blob = new Blob([code], { type: "text/javascript" });
+      const worker = new Worker(URL.createObjectURL(blob));
+      return new Promise((resolve, reject) => {
+        worker.onmessage = (e) => {
+          if (typeof e.data === "string" && e.data.startsWith("uciok")) resolve(worker);
+        };
+        worker.onerror = () => reject(new Error("не удалось запустить движок"));
+        worker.postMessage("uci");
+        setTimeout(() => reject(new Error("движок не ответил")), 30000);
+      });
+    });
+}
+
+// Запускает расчёт позиции. Промежуточные уточнения приходят в
+// board._onAnalysisInfo (с лучшим ходом), финал — board._onAnalysisDone(bestmove).
+function analyzePosition(fen, board) {
+  return getAnalyzer().then((worker) => {
+    if (activeAnalysis) worker.postMessage("stop"); // прерываем предыдущий расчёт
+    const seq = ++analyzerSeq;
+    activeAnalysis = { seq, board };
+    worker.onmessage = (e) => {
+      const line = typeof e.data === "string" ? e.data : "";
+      if (activeAnalysis && activeAnalysis.seq === seq) {
+        if (line.startsWith("info")) {
+          const r = parseInfo(line);
+          if (r && r.best) board._onAnalysisInfo(r);
+        } else if (line.startsWith("bestmove")) {
+          const done = activeAnalysis;
+          activeAnalysis = null;
+          done.board._onAnalysisDone(line);
+        }
+      }
+    };
+    worker.postMessage("position fen " + fen);
+    worker.postMessage("go depth " + ANALYSIS_DEPTH);
+  });
+}
+
+function parseInfo(line) {
+  const m = /score\s+(cp|mate)\s+(-?\d+)/.exec(line);
+  if (!m) return null;
+  const pv = /\bpv\s+(\S+)/.exec(line);
+  if (!pv) return null;
+  return { type: m[1], value: Number(m[2]), best: pv[1] };
+}
+
 // --- Веб-компонент <chessjax-board> ------------------------------------------
 
 const registeredBoards = new Set();
@@ -551,6 +654,9 @@ class ChessboardElement extends HTMLElement {
     this._variant = null; // режим варианта: {positions, idx} альтернативной линии
     this._activeSquare = "a8"; // roving tabindex: клетка, с которой начинают навигацию стрелками
     this._wasFull = false; // прошлое состояние fullscreen — чтобы озвучивать только реальные переходы
+    this._analysis = null; // результат анализа: {type, value, best} последнего info с pv
+    this._analyzing = false; // идёт ли расчёт прямо сейчас
+    this._analysisFen = null; // фен позиции, по которой запущен текущий анализ
     this._root = this.attachShadow ? null : this; // Shadow DOM отключён: таблица должна оставаться в светлом DOM для скринридеров.
   }
 
@@ -607,7 +713,8 @@ class ChessboardElement extends HTMLElement {
     this._btnPlay = mkButton(t.play, "▶", () => { unlockAudio(); this.togglePlay(); });
     this._btnNext = mkButton(t.next, "→", () => { unlockAudio(); this.next(); });
     this._btnFull = mkButton(t.fullscreen, "⛶", () => { unlockAudio(); this.toggleFullscreen(); });
-    controls.append(this._btnRestart, this._btnPrev, this._btnPlay, this._btnNext, this._btnFull);
+    this._btnAnalyze = mkButton(t.analyze, "Σ", () => { unlockAudio(); this.toggleAnalysis(); });
+    controls.append(this._btnRestart, this._btnPrev, this._btnPlay, this._btnNext, this._btnFull, this._btnAnalyze);
     wrap.appendChild(controls);
 
     this._live = document.createElement("p");
@@ -694,6 +801,11 @@ class ChessboardElement extends HTMLElement {
     const t = I18N[lang] || I18N.ru;
     const pos = this._current;
     const parsed = parseFen(pos.fen);
+    // Анализ привязан к позиции: при смене хода подсветка и расчёт слетают.
+    if (this._analysisFen !== pos.fen) {
+      this._analysis = null;
+      this._analyzing = false;
+    }
 
     // Подсветка клеток хода варианта (откуда → куда) — визуальная пометка.
     let highlight = null;
@@ -780,6 +892,9 @@ class ChessboardElement extends HTMLElement {
       if (this._variant) {
         e.preventDefault();
         this.exitVariation();
+      } else if (this._analysis || this._analyzing) {
+        e.preventDefault();
+        this._clearAnalysis();
       }
       return;
     }
@@ -791,6 +906,11 @@ class ChessboardElement extends HTMLElement {
     if (key === "f" || key === "F") {
       e.preventDefault();
       this.toggleFullscreen();
+      return;
+    }
+    if (key === "a" || key === "A") {
+      e.preventDefault();
+      this.toggleAnalysis();
     }
   }
 
@@ -925,6 +1045,105 @@ class ChessboardElement extends HTMLElement {
     } else {
       playSound(SOUND_FILE[m.piece] || "move");
     }
+  }
+
+  // Анализ позиции движком Stockfish (клавиша A / кнопка Σ). Движок грузится
+  // лениво, один раз на страницу, и живёт в отдельном worker'е — страница не
+  // виснет. Результат озвучивается и подсвечивается; подсветка доступна и
+  // скринридеру (в aria-label клеток добавлено «лучший ход»).
+  toggleAnalysis() {
+    if (this._analyzing || this._analysis) {
+      this._clearAnalysis();
+      return;
+    }
+    this._requestAnalysis();
+  }
+
+  _requestAnalysis() {
+    const t = I18N[this.lang] || I18N.ru;
+    if (!this._positions || !this._current) {
+      speak(this._live, t.analysisError);
+      return;
+    }
+    this._analyzing = true;
+    this._analysisFen = this._current.fen;
+    speak(this._live, t.analyzing);
+    analyzePosition(this._analysisFen, this).catch(() => {
+      if (!this.isConnected) return;
+      this._analyzing = false;
+      speak(this._live, t.analysisError);
+    });
+  }
+
+  // Уточнение оценки по ходу расчёта: обновляем подсветку лучшего хода.
+  _onAnalysisInfo(r) {
+    if (!this.isConnected || !this._analysisFen) return; // расчёт снят — игнор
+    if (this._current && this._analysisFen !== this._current.fen) return; // позиция сменилась
+    this._analysis = r;
+    this._applyAnalysisHighlight();
+  }
+
+  // Финал расчёта (bestmove): финальная подсветка + озвучка результата.
+  _onAnalysisDone(line) {
+    if (!this.isConnected || !this._analysisFen) return; // расчёт снят — игнор
+    if (this._current && this._analysisFen !== this._current.fen) return; // позиция сменилась
+    this._analyzing = false;
+    const t = I18N[this.lang] || I18N.ru;
+    const r = this._analysis;
+    const best = (line.match(/bestmove\s+(\S+)/) || [])[1] || (r && r.best);
+    if (best && best !== "(none)") {
+      this._applyAnalysisHighlight();
+      speak(this._live, t.score + " " + this._scoreText(r, t) + ", " + t.bestMove + " " + this._moveText(best) + ".");
+    } else {
+      speak(this._live, t.analysisCleared);
+    }
+  }
+
+  _scoreText(r, t) {
+    if (!r) return "0.0";
+    if (r.type === "mate") return typeof t.mateIn === "function" ? t.mateIn(r.value) : t.mateIn + " " + r.value;
+    const v = r.value / 100;
+    if (v === 0) return "0.0";
+    return (v > 0 ? "+" : "−") + Math.abs(v).toFixed(1);
+  }
+
+  _moveText(uci) {
+    return uci.slice(0, 2).toUpperCase() + "-" + uci.slice(2, 4).toUpperCase();
+  }
+
+  // Подсветка клеток лучшего хода: класс для зрячих + пометка в aria-label
+  // для скринридера («E2, лучший ход»).
+  _applyAnalysisHighlight() {
+    const r = this._analysis;
+    const grid = this._tableWrap && this._tableWrap.querySelector(".chessjax-board");
+    if (!r || !grid) return;
+    const t = I18N[this.lang] || I18N.ru;
+    grid.querySelectorAll(".analysis-move").forEach((c) => c.classList.remove("analysis-move"));
+    let parsed = null;
+    for (const sq of [r.best.slice(0, 2), r.best.slice(2, 4)]) {
+      const cell = grid.querySelector(`[data-square="${sq}"]`);
+      if (!cell) continue;
+      cell.classList.add("analysis-move");
+      if (parsed === null) parsed = parseFen(this._current.fen);
+      const piece = parsed.board.get(sq);
+      let base;
+      if (piece) {
+        const label = pieceLabel(piece, this.lang);
+        base = label.charAt(0).toUpperCase() + label.slice(1) + " " + sq.toUpperCase();
+      } else {
+        base = sq.toUpperCase();
+      }
+      cell.setAttribute("aria-label", base + ", " + t.bestMove);
+    }
+  }
+
+  _clearAnalysis() {
+    const t = I18N[this.lang] || I18N.ru;
+    this._analysis = null;
+    this._analyzing = false;
+    this._analysisFen = null;
+    this._show({ announce: false }); // перерисовка снимает классы подсветки
+    speak(this._live, t.analysisCleared);
   }
 
   // Публичное API: вызывается и кнопками навигации, и внешними кнопками текста.
