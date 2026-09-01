@@ -165,17 +165,20 @@ button:hover, button:focus-visible {
 }
 
 /* Полноэкранный режим (клавиша F или кнопка ⛶ под доской): доска
-   растягивается на весь экран и центрируется, фигуры увеличиваются. */
+   растягивается на весь экран, фигуры увеличиваются. Контент выравниваем
+   по верху, а не по центру: при центрировании переполнение режет и верх,
+   и низ — строки с инфой (ход/анализ) под кнопками уходят за экран. */
 chessjax-board:fullscreen {
   background: var(--bg);
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  overflow-y: auto;
 }
 
 chessjax-board:fullscreen .chessjax-board {
-  width: min(86vh, 92vw);
+  width: min(72vh, 92vw);
   margin: 0 auto;
   grid-template-columns: repeat(8, 1fr);
   border-width: 2px;
