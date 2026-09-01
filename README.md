@@ -39,6 +39,15 @@ JS library to view chessboards on webpages and read them using screenreaders.
 
 Язык: `chessjax.setLanguage("ru" | "en" | "de" | "tr")`.
 
+## Звуки ходов
+
+Ходы озвучиваются реалистичными деревянными ударами (WebAudio, файлы в `sound/`,
+подтягиваются с CDN относительно модуля). Навигация вперёд и авто-шоу (▶) играют
+звук хода: рокировка — король + отложенная ладья, взятие — отдельный удар, обычный
+ход — звук конкретной фигуры (пешка звучит легче ладьи, у короля звук тяжёлый).
+Источник записей — sounddino.com (free / royalty-free / no attribution). Отключить:
+`<chessjax-board ... sound="off">`.
+
 ## Примеры
 
 - `examples/basic.html` — доски по FEN и PGN, переключатель языка.

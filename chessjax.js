@@ -331,6 +331,59 @@ function speak(el, text) {
   setTimeout(() => { el.textContent = text; }, 60);
 }
 
+// --- Звуки ходов -------------------------------------------------------------
+// Деревянные записи с sounddino.com (free / royalty-free / no attribution),
+// нарезанные в sound/*.mp3. Разные фигуры — реальные удары разного веса
+// (пешка звучит легче ладьи), взятие и рокировка — отдельными звуками.
+const SOUND_FILE = { p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king" };
+
+let audioCtx = null;
+const soundCache = new Map();
+
+function getAudioCtx() {
+  if (!audioCtx && typeof AudioContext !== "undefined") {
+    audioCtx = new AudioContext();
+  }
+  return audioCtx;
+}
+
+function loadSoundFile(name) {
+  if (soundCache.has(name)) return Promise.resolve(soundCache.get(name));
+  const ctx = getAudioCtx();
+  if (!ctx) return Promise.resolve(null);
+  const url = new URL("./sound/" + name + ".mp3", import.meta.url).href;
+  return fetch(url)
+    .then((r) => (r.ok ? r.arrayBuffer() : null))
+    .then((ab) => (ab ? ctx.decodeAudioData(ab) : null))
+    .then((buf) => { soundCache.set(name, buf); return buf; })
+    .catch(() => null);
+}
+
+// AudioContext создаётся/возобновляется по юзер-жесту (клик по кнопке
+// навигации или ▶) — и в авто-шоу звук продолжает работать.
+function playSound(name, opts = {}) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume();
+  loadSoundFile(name).then((buf) => {
+    if (!buf) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const g = ctx.createGain();
+    g.gain.value = opts.gain || 1;
+    src.connect(g).connect(ctx.destination);
+    src.start(ctx.currentTime + (opts.delay || 0));
+  });
+}
+
+// AudioContext можно разблокировать только в юзер-жесте. Авто-шоу (▶) первый
+// звук даёт из setInterval — уже вне жеста, поэтому разблокируем контекст
+// прямо в обработчиках кликов по кнопкам навигации.
+function unlockAudio() {
+  const ctx = getAudioCtx();
+  if (ctx && ctx.state === "suspended") ctx.resume();
+}
+
 // --- Веб-компонент <chessjax-board> ------------------------------------------
 
 const registeredBoards = new Set();
@@ -394,10 +447,10 @@ class ChessboardElement extends HTMLElement {
     controls.className = "chessjax-controls";
     controls.setAttribute("role", "group");
     controls.setAttribute("aria-label", t.board);
-    this._btnRestart = mkButton(t.restart, "⏮", () => this.goTo("start"));
-    this._btnPrev = mkButton(t.prev, "←", () => this.prev());
-    this._btnPlay = mkButton(t.play, "▶", () => this.togglePlay());
-    this._btnNext = mkButton(t.next, "→", () => this.next());
+    this._btnRestart = mkButton(t.restart, "⏮", () => { unlockAudio(); this.goTo("start"); });
+    this._btnPrev = mkButton(t.prev, "←", () => { unlockAudio(); this.prev(); });
+    this._btnPlay = mkButton(t.play, "▶", () => { unlockAudio(); this.togglePlay(); });
+    this._btnNext = mkButton(t.next, "→", () => { unlockAudio(); this.next(); });
     controls.append(this._btnRestart, this._btnPrev, this._btnPlay, this._btnNext);
     wrap.appendChild(controls);
 
@@ -520,25 +573,50 @@ class ChessboardElement extends HTMLElement {
     this._btnRestart.disabled = this._idx === 0;
   }
 
+  // Звук хода. Рокировка — король + отложенная ладья; взятие — отдельный
+  // удар; обычный ход — деревянный звук конкретной фигуры (пешка легче ладьи).
+  // sound="off" отключает все звуки на доске.
+  _playMoveSound(move = null) {
+    if (this.getAttribute("sound") === "off") return;
+    const m = move || (this._positions && this._positions[this._idx] && this._positions[this._idx].move);
+    if (!m) return;
+    const flags = m.flags || "";
+    if (flags.includes("k") || flags.includes("q")) {
+      playSound(SOUND_FILE.k);
+      playSound(SOUND_FILE.r, { delay: 0.18 });
+    } else if (flags.includes("c") || m.captured) {
+      playSound("capture");
+    } else {
+      playSound(SOUND_FILE[m.piece] || "move");
+    }
+  }
+
   // Публичное API: вызывается и кнопками навигации, и внешними кнопками текста.
 
   goTo(moveSpec, opts = {}) {
+    const prevIdx = this._idx;
     const target = positionIndex(moveSpec);
     if (this._positions) this._idx = Math.min(target, this._positions.length - 1);
     this._show({ announce: opts.silent ? false : true });
+    // При загрузке (silent) звука нет — до первого клика AudioContext ещё
+    // заблокирован, да и это шум при открытии страницы.
+    if (!opts.silent && this._idx !== prevIdx) this._playMoveSound();
   }
 
   next() {
     if (this._positions && this._idx < this._positions.length - 1) {
       this._idx += 1;
       this._show({ announce: true });
+      this._playMoveSound();
     }
   }
 
   prev() {
     if (this._positions && this._idx > 0) {
+      const undone = this._positions[this._idx].move; // звук отыгранного хода
       this._idx -= 1;
       this._show({ announce: true });
+      this._playMoveSound(undone);
     }
   }
 
@@ -589,6 +667,7 @@ function wireStoryButtons() {
     if (!btn) return;
     const board = document.getElementById(btn.getAttribute("chess"));
     if (board && typeof board.goTo === "function") {
+      unlockAudio();
       board.goTo(btn.getAttribute("move"));
     }
   });
