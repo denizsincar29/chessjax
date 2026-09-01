@@ -37,6 +37,9 @@ const I18N = {
     next: "Следующий ход",
     play: "Показать ходы по порядку",
     stop: "Остановить показ ходов",
+    paused: "Остановлено",
+    pausedAt: (n, c) => "Остановлено на ходе " + n + " " + (c === "w" ? "белых" : "чёрных"),
+    speedAt: (s) => "Скорость показа: " + (s >= 5 ? s + " секунд" : s === 1 ? s + " секунда" : s + " секунды") + " на ход",
     restart: "В начало",
     fullscreen: "Во весь экран",
     exitFullscreen: "Выйти из полноэкранного режима",
@@ -80,8 +83,8 @@ const I18N = {
     help: [
       "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты.",
       "Ходы и комментарии. Контрол и стрелки влево и вправо — предыдущий и следующий ход. Ход озвучивается фигурой и координатами, после него читается комментарий из записи партии.",
-      "Воспроизведение. Пробел — автоматический просмотр ходов с начала партии. Контрол и пробел — продолжить с текущего хода, повторное нажатие — пауза.",
-      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, лучший ход, анализ партии. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша B — лучший ход в текущей позиции: оценка и ход движка. Клавиша A — анализ партии: каждый ход с вердиктом и преимуществом, повторное нажатие — выключить. Удерживайте A две секунды — скрытый режим роаста с неформальными вердиктами. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
+      "Воспроизведение. Пробел — продолжить с текущего хода или пауза с объявлением номера хода. Контрол и пробел — автоматический просмотр с начала партии. Контрол и стрелки вверх и вниз — быстрее и медленнее.",
+      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, лучший ход, анализ партии. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша B — лучший ход в текущей позиции: оценка и ход движка. Клавиша A — анализ партии: каждый ход с вердиктом, величина преимущества маркируется тоном, повторное нажатие — выключить. Удерживайте A две секунды — скрытый режим роаста с неформальными вердиктами. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
     ],
     helpEnd: "Инструкция закрыта.",
     commentLabel: "Комментарий",
@@ -117,6 +120,9 @@ const I18N = {
     next: "Next move",
     play: "Play through moves",
     stop: "Stop playing moves",
+    paused: "Stopped",
+    pausedAt: (n, c) => "Stopped at move " + n + " " + (c === "w" ? "white" : "black"),
+    speedAt: (s) => "Playback speed: " + s + " seconds per move",
     restart: "Back to start",
     fullscreen: "Fullscreen",
     exitFullscreen: "Exit fullscreen",
@@ -159,8 +165,8 @@ const I18N = {
     help: [
       "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates.",
       "Moves and comments. Control plus arrow left and right step to the previous and next move. Each move is announced with the piece and squares, followed by the comment from the game record.",
-      "Playback. Space starts automatic playthrough from the beginning of the game. Control plus space continues from the current move; pressing again pauses.",
-      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, best move, game analysis. Press F for fullscreen, press again or escape to exit. Press B for the best move in the current position: score and the engine's move. Press A to toggle game analysis: each move with a verdict and the advantage; press again to turn off. Hold A for two seconds to enable the hidden roast mode with informal verdicts. Press H for the next help section; after the last one it closes.",
+      "Playback. Space continues from the current move or pauses and announces the move number. Control plus space starts automatic playthrough from the beginning of the game. Control plus arrow up and down makes playback faster and slower.",
+      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, best move, game analysis. Press F for fullscreen, press again or escape to exit. Press B for the best move in the current position: score and the engine's move. Press A to toggle game analysis: each move with a verdict; the advantage is signaled by a tone; press again to turn off. Hold A for two seconds to enable the hidden roast mode with informal verdicts. Press H for the next help section; after the last one it closes.",
     ],
     helpEnd: "Help closed.",
     commentLabel: "Comment",
@@ -196,6 +202,9 @@ const I18N = {
     next: "Nächster Zug",
     play: "Züge nacheinander",
     stop: "Anzeige stoppen",
+    paused: "Angehalten",
+    pausedAt: (n, c) => "Angehalten bei Zug " + n + " " + (c === "w" ? "Weiß" : "Schwarz"),
+    speedAt: (s) => "Geschwindigkeit: " + s + " Sekunden pro Zug",
     restart: "Zum Anfang",
     fullscreen: "Vollbild",
     exitFullscreen: "Vollbild beenden",
@@ -235,8 +244,8 @@ const I18N = {
     help: [
       "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten.",
       "Züge und Kommentare. Strg plus Pfeil links und rechts — vorheriger und nächster Zug. Der Zug wird mit Figur und Feldern angesagt, danach der Kommentar aus der Partie.",
-      "Wiedergabe. Leertaste — automatisches Abspielen der Züge von Anfang an. Strg und Leertaste — vom aktuellen Zug weiter; erneut drücken — Pause.",
-      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild, bester Zug, Partieanalyse. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste B — bester Zug in der aktuellen Stellung: Bewertung und Engine-Zug. Taste A — Partieanalyse: jeder Zug mit Urteil und Vorteil; erneut drücken — aus. Taste A zwei Sekunden gedrückt halten — versteckter Roast-Modus mit lockeren Urteilen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
+      "Wiedergabe. Leertaste — vom aktuellen Zug weiter oder Pause mit Angabe der Zugnummer. Strg und Leertaste — automatisches Abspielen von Anfang an. Strg und Pfeil hoch und runter — schneller und langsamer.",
+      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild, bester Zug, Partieanalyse. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste B — bester Zug in der aktuellen Stellung: Bewertung und Engine-Zug. Taste A — Partieanalyse: jeder Zug mit Urteil, der Vorteil wird durch einen Ton markiert; erneut drücken — aus. Taste A zwei Sekunden gedrückt halten — versteckter Roast-Modus mit lockeren Urteilen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
     ],
     helpEnd: "Hilfe geschlossen.",
     commentLabel: "Kommentar",
@@ -272,6 +281,9 @@ const I18N = {
     next: "Sonraki hamle",
     play: "Hamleleri sırayla göster",
     stop: "Gösterimi durdur",
+    paused: "Durduruldu",
+    pausedAt: (n, c) => "Zug " + n + " " + (c === "w" ? "beyaz" : "siyah") + " durduruldu",
+    speedAt: (s) => "Gösterim hızı: hamle başına " + s + " saniye",
     restart: "Başa dön",
     fullscreen: "Tam ekran",
     exitFullscreen: "Tam ekrandan çık",
@@ -311,8 +323,8 @@ const I18N = {
     help: [
       "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız.",
       "Hamleler ve yorumlar. Kontrol ve sol/sağ oklar — önceki ve sonraki hamle. Hamle taş ve karelerle okunur, ardından kayıttaki yorum söylenir.",
-      "Oynatma. Boşluk — hamleleri baştan otomatik oynatır. Kontrol ve boşluk — mevcut hamleden devam eder; tekrar basın — duraklatır.",
-      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran, en iyi hamle, oyun analizi. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. B tuşu — mevcut pozisyondaki en iyi hamle: değerlendirme ve motor hamlesi. A tuşu — oyun analizi: her hamle için yorum ve avantaj; tekrar basın — kapatır. A tuşuna iki saniye basılı tutun — gayriresmî yorumlar veren gizli roast modu. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
+      "Oynatma. Boşluk — mevcut hamleden devam eder veya hamle numarasıyla duraklatır. Kontrol ve boşluk — baştan otomatik oynatır. Kontrol ve yukarı/aşağı oklar — hızlandırır ve yavaşlatır.",
+      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran, en iyi hamle, oyun analizi. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. B tuşu — mevcut pozisyondaki en iyi hamle: değerlendirme ve motor hamlesi. A tuşu — oyun analizi: her hamle için yorum, avantaj bir tonla işaretlenir; tekrar basın — kapatır. A tuşuna iki saniye basılı tutun — gayriresmî yorumlar veren gizli roast modu. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
     ],
     helpEnd: "Yardım kapatıldı.",
     commentLabel: "Yorum",
@@ -671,6 +683,32 @@ function unlockAudio() {
   if (ctx && ctx.state === "suspended") ctx.resume();
 }
 
+// Тон преимущества: квадратная волна, частота 220·2^(white/2.5) Гц, где white —
+// оценка белых в пешках (белые впереди — выше, чёрные — ниже). Ограничитель
+// 70–1500 Гц: оценка движка в реальных партиях уходит за ±10 пешек (при угрозе
+// мата и ±30), а без clamp частота уходит в ультра/инфразвук. Короткий, с плавной
+// атакой и релизом — чтобы в авто-прогоне ходов не раздражал.
+function playAdvantageTone(cpWhite) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume();
+  const white = cpWhite / 100; // сотые пешки → пешки
+  const raw = 220 * Math.pow(2, white / 2.5);
+  const freq = Math.min(1500, Math.max(70, raw));
+  const t0 = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = "square";
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(0.12, t0 + 0.04); // атака
+  g.gain.setValueAtTime(0.12, t0 + 0.3); // удержание
+  g.gain.linearRampToValueAtTime(0, t0 + 0.45); // релиз
+  osc.connect(g).connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t0 + 0.45);
+}
+
 // --- Анализ Stockfish ----------------------------------------------------------
 // Движок — Stockfish 10 (wasm) с jsdelivr (loader 62 КБ + был 358 КБ). Chrome
 // блокирует прямой new Worker(cross-origin), поэтому loader качаем через fetch
@@ -824,6 +862,7 @@ class ChessboardElement extends HTMLElement {
     this._positions = null;
     this._idx = 0;
     this._timer = null;
+    this._speedMs = 2500; // интервал автопросмотра; Ctrl+↑/↓ — быстрее/медленнее
     this._helpIdx = 0; // 0 = справка закрыта; 1..N = открыт раздел
     this._variant = null; // режим варианта: {positions, idx} альтернативной линии
     this._activeSquare = "a8"; // roving tabindex: клетка, с которой начинают навигацию стрелками
@@ -1022,9 +1061,9 @@ class ChessboardElement extends HTMLElement {
         } else speak(this._live, t.variationLabel);
       } else if (this._idx === 0) speak(this._live, t.start);
       else {
-        // «Ход N» одинаков для пары полуходов (белые+чёрные): номер меняется
-        // только с новым ходом. Цвет и фигура — в самом описании хода.
-        let text = t.move + " " + Math.ceil(this._idx / 2) + ": " + moveSpeech(pos.move, lang);
+        // Малословно: сам ход без номера («Белая пешка E2-E4»). Номер хода и цвет
+        // слышны только в паузе авто-шоу (Ctrl+Пробел) — см. togglePlay.
+        let text = moveSpeech(pos.move, lang);
         if (pos.comment) text += ". " + t.commentLabel + ": " + pos.comment;
         if (pos.variation && pos.variation.length) text += ". " + t.pressV;
         speak(this._live, text);
@@ -1041,7 +1080,8 @@ class ChessboardElement extends HTMLElement {
 
   // Клавиши доски (фокус на клетке, NVDA в режиме форм):
   //   ↑/↓/←/→ — по клеткам; Ctrl+←/→ — перемотка ходов (озвучка + звук);
-  //   Пробел — автопросмотр с начала; Ctrl+Пробел — с текущего хода / пауза;
+  //   Пробел — продолжить с текущего хода / пауза; Ctrl+Пробел — с начала;
+  //   Ctrl+↑/↓ — быстрее / медленнее;
   //   V — проиграть вариант (повторно — финал); Esc — выйти из варианта;
   //   H — справка по разделам.
   _onBoardKeydown(e) {
@@ -1071,12 +1111,19 @@ class ChessboardElement extends HTMLElement {
     }
     if (key === " " && !mod && !e.altKey) {
       e.preventDefault();
-      this.playFromStart();
+      this.togglePlay();
       return;
     }
     if (key === " " && mod) {
       e.preventDefault();
-      this.togglePlay();
+      this.playFromStart();
+      return;
+    }
+    if ((key === "ArrowUp" || key === "ArrowDown") && mod) {
+      e.preventDefault();
+      this._speedMs = Math.min(6000, Math.max(1000, this._speedMs + (key === "ArrowUp" ? -500 : 500)));
+      speak(this._live, (I18N[this.lang] || I18N.ru).speedAt(this._speedMs / 1000));
+      if (this._timer) this._startAutoplay(); // перезапуск интервала с новой скоростью
       return;
     }
     if (key === "v" || key === "V") {
@@ -1319,6 +1366,12 @@ class ChessboardElement extends HTMLElement {
       if (best && best !== "(none)") {
         this._applyAnalysisHighlight();
         speak(this._live, t.score + " " + this._scoreText(r, t) + ", " + t.bestMove + " " + this._moveText(best) + ".");
+        // Тон по оценке: у B оценка уже проговаривается цифрой, тон дублирует её
+        // звуком. При мате частота ушла бы в заоблачные значения — не играем.
+        if (this._toneOk() && r.type !== "mate") {
+          const moverIsWhite = fen.split(" ")[1] === "w";
+          playAdvantageTone(moverIsWhite ? scoreToCp(r) : -scoreToCp(r));
+        }
       } else {
         speak(this._live, t.analysisCleared);
       }
@@ -1361,7 +1414,15 @@ class ChessboardElement extends HTMLElement {
     const curCp = curR ? -scoreToCp(curR) : scoreToCp(prevR);
     // Вердикт — в polite-регион: NVDA сначала дочитывает ход (assertive _live),
     // затем произносит вердикт единым потоком, не перебивая навигацию.
-    speak(this._verdictLive, vText + ". " + this._advantageText(curCp, move.color, t));
+    // Цифру преимущества не проговариваем — её величину маркирует тон.
+    speak(this._verdictLive, vText);
+    if (this._toneOk()) playAdvantageTone(move.color === "w" ? curCp : -curCp);
+  }
+
+  // Тон преимущества включён, пока доска не выключила его атрибутами
+  // tone="off" (только тона) или sound="off" (вся звуковая подсистема).
+  _toneOk() {
+    return this.getAttribute("tone") !== "off" && this.getAttribute("sound") !== "off";
   }
 
   _verdictFor(actualUci, prevR, curR) {
@@ -1487,12 +1548,26 @@ class ChessboardElement extends HTMLElement {
       this._timer = null;
       this._btnPlay.textContent = "▶";
       this._btnPlay.setAttribute("aria-label", I18N[this.lang].play);
+      // Пауза — единственное место, где слышен номер хода: «Остановлено на ходе 23 белых».
+      const t = I18N[this.lang] || I18N.ru;
+      if (this._idx > 0 && this._current) {
+        speak(this._live, t.pausedAt(Math.ceil(this._idx / 2), this._idx % 2 === 1 ? "w" : "b"));
+      } else {
+        speak(this._live, t.paused);
+      }
       return;
     }
     if (this._atEnd()) {
       if (this._variant) this._variant.idx = 0;
       else this._idx = 0;
     }
+    this._startAutoplay();
+  }
+
+  // Запуск интервала автопросмотра с текущей скоростью (_speedMs, Ctrl+↑/↓).
+  // Отдельный метод, чтобы смена скорости на ходу перезапускала интервал.
+  _startAutoplay() {
+    if (this._timer) clearInterval(this._timer);
     const step = () => {
       if (this._atEnd()) {
         this.togglePlay();
@@ -1500,7 +1575,7 @@ class ChessboardElement extends HTMLElement {
       }
       this.next();
     };
-    this._timer = setInterval(step, 2500);
+    this._timer = setInterval(step, this._speedMs);
     this._btnPlay.textContent = "⏸";
     this._btnPlay.setAttribute("aria-label", I18N[this.lang].stop);
   }

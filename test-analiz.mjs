@@ -1,7 +1,10 @@
-// Анализ chessjax v0.6.0: лучший ход (B/★), анализ партии (A/Σ), скрытый
+// Анализ chessjax v0.6.1: лучший ход (B/★), анализ партии (A/Σ), скрытый
 // роаст (долгое A 2 сек). Вердикт ходу идёт в polite-регион .chessjax-verdict-live
-// ПОСЛЕ озвучки хода (.chessjax-live). Движок Stockfish с jsdelivr грузится лениво —
-// до первого запроса анализа никаких сетевых обращений к нему быть не должно.
+// ПОСЛЕ озвучки хода (.chessjax-live); величину преимущества цифрой НЕ озвучиваем —
+// её маркирует квадрат-тон (playAdvantageTone). Пробел — продолжить/пауза,
+// Ctrl+Пробел — с начала, Ctrl+↑/↓ — скорость автопросмотра.
+// Движок Stockfish с jsdelivr грузится лениво — до первого запроса анализа никаких
+// сетевых обращений к нему быть не должно.
 // Запуск: node test-analiz.mjs (playwright + chromium, локальный http-сервер).
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
@@ -71,8 +74,8 @@ async function waitFor(pred, timeout = 40000) {
   }
   return false;
 }
-const VERDICT = /Прекрасный ход|Хороший ход|Интересный ход|Неточность|Ошибка|Грубая ошибка|Позиция равная|Преимущество/;
-const ROAST = /Ооо|прекрасно съел|Ням|утиль|Вау, вот это ход|Мастерски|Красота|Неплохо|Норм|Сойдёт|О, интересно|Хм, любопытно|Что-то задумал|Так себе|Не уверен|лучше|не лучшая идея|Рискованно|Ой\.\.\.|полная хрень|Что ты делаешь|Это провал|Преимущество|Позиция равная/;
+const VERDICT = /Прекрасный ход|Хороший ход|Интересный ход|Неточность|Ошибка|Грубая ошибка/;
+const ROAST = /Ооо|прекрасно съел|Ням|утиль|Вау, вот это ход|Мастерски|Красота|Неплохо|Норм|Сойдёт|О, интересно|Хм, любопытно|Что-то задумал|Так себе|Не уверен|лучше|не лучшая идея|Рискованно|Ой\.\.\.|полная хрень|Что ты делаешь|Это провал/;
 
 // B: лучший ход в текущей позиции + подсветка 2 клеток + a11y-пометка.
 {
@@ -145,6 +148,48 @@ const ROAST = /Ооо|прекрасно съел|Ням|утиль|Вау, во
   await page.keyboard.press("a");
   await page.waitForTimeout(150);
   check("A (короткое): анализ партии выключен", (await live()).includes("Анализ партии выключен"), await live());
+}
+
+// v0.6.1: обмен клавиш — Пробел = продолжить/пауза, Ctrl+Пробел = с начала,
+// Ctrl+↑/↓ — скорость автопросмотра. (Доска стартует с move-атрибута,
+// поэтому сначала Ctrl+Пробел сбрасывает в начало.)
+{
+  await focusCell();
+
+  // Разгоняем до минимума (3×Ctrl+↑: 2500→2000→1500→1000) и проверяем объявление.
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press("Control+ArrowUp");
+    await page.waitForTimeout(120);
+  }
+  check("Ctrl+↑: скорость ускорена до 1 секунды", /Скорость показа: 1 секунд/.test(await live()), await live());
+
+  await page.keyboard.press("Control+ArrowDown");
+  await page.waitForTimeout(120);
+  check("Ctrl+↓: скорость замедлена до 1.5", /Скорость показа: 1\.5 секунды/.test(await live()), await live());
+
+  // Ctrl+Пробел — автопросмотр с начала (был «продолжить/пауза», стал «с начала»).
+  await page.keyboard.press("Control+Space");
+  const okStart = await waitFor(async () => /Начальная позиция/.test(await live()), 8000);
+  check("Ctrl+Пробел: просмотр с начала", okStart, await live());
+  await page.waitForTimeout(150);
+  const btnStop = sel + ' .chessjax-controls .chessjax-btn[aria-label="Остановить показ ходов"]';
+  check("Ctrl+Пробел: автопросмотр запущен", (await page.locator(btnStop).count()) === 1, "");
+
+  // Ждём один ход (интервал 1.5с; idx 1..2 = «ход 1 белых») и пауза Пробелом — слышен номер хода.
+  await page.waitForTimeout(1800);
+  await page.keyboard.press(" ");
+  const okPause = await waitFor(async () => /Остановлено на ходе 1 белых/.test(await live()), 8000);
+  check("Пробел: пауза с номером хода", okPause, await live());
+  check("Пробел: кнопка вернулась ▶", (await page.locator(sel + ' .chessjax-controls .chessjax-btn[aria-label="Показать ходы по порядку"]').count()) === 1, "");
+
+  // Пробел — продолжение с текущего хода (был «с начала», стал «продолжить/пауза»).
+  await page.keyboard.press(" ");
+  await page.waitForTimeout(150);
+  check("Пробел: продолжение с текущего хода", (await page.locator(btnStop).count()) === 1, "");
+
+  // Не оставляем таймер: пауза.
+  await page.keyboard.press(" ");
+  await page.waitForTimeout(150);
 }
 
 // Кнопка ★ — лучший ход снова работает.
