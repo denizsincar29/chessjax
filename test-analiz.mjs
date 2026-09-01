@@ -1,5 +1,6 @@
-// Анализ chessjax v0.5.1: лучший ход (B/★), анализ партии (A/Σ), скрытый
-// роустер (долгое A 2 сек). Движок Stockfish с jsdelivr грузится лениво —
+// Анализ chessjax v0.6.0: лучший ход (B/★), анализ партии (A/Σ), скрытый
+// роаст (долгое A 2 сек). Вердикт ходу идёт в polite-регион .chessjax-verdict-live
+// ПОСЛЕ озвучки хода (.chessjax-live). Движок Stockfish с jsdelivr грузится лениво —
 // до первого запроса анализа никаких сетевых обращений к нему быть не должно.
 // Запуск: node test-analiz.mjs (playwright + chromium, локальный http-сервер).
 import { chromium } from "playwright";
@@ -53,6 +54,9 @@ check("ленивая загрузка: до первого запроса ан�
 async function live() {
   return (await page.locator(sel + " .chessjax-live").textContent() || "").trim();
 }
+async function verdictLive() {
+  return (await page.locator(sel + " .chessjax-verdict-live").textContent() || "").trim();
+}
 async function hl() {
   return page.locator(sel + " .chessjax-cell.analysis-move").count();
 }
@@ -67,8 +71,8 @@ async function waitFor(pred, timeout = 40000) {
   }
   return false;
 }
-const VERDICT = /Прекрасный ход|Хороший ход|Интересный ход|Неточность|Грубая ошибка|Позиция равная|Преимущество/;
-const ROOSTER = /Ооо|Неплохо|О, интересно|Так себе|не лучшая идея|полная хрень|Преимущество/;
+const VERDICT = /Прекрасный ход|Хороший ход|Интересный ход|Неточность|Ошибка|Грубая ошибка|Позиция равная|Преимущество/;
+const ROAST = /Ооо|прекрасно съел|Ням|утиль|Вау, вот это ход|Мастерски|Красота|Неплохо|Норм|Сойдёт|О, интересно|Хм, любопытно|Что-то задумал|Так себе|Не уверен|лучше|не лучшая идея|Рискованно|Ой\.\.\.|полная хрень|Что ты делаешь|Это провал|Преимущество|Позиция равная/;
 
 // B: лучший ход в текущей позиции + подсветка 2 клеток + a11y-пометка.
 {
@@ -103,39 +107,39 @@ const ROOSTER = /Ооо|Неплохо|О, интересно|Так себе|н
 {
   await page.click(sel + ' .chessjax-controls .chessjax-btn[aria-label="Следующий ход"]');
   const t0 = Date.now();
-  const ok = await waitFor(async () => VERDICT.test(await live()));
-  check("ход вперёд: вердикт движка", ok, JSON.stringify({ ms: Date.now() - t0, text: await live() }));
+  const ok = await waitFor(async () => VERDICT.test(await verdictLive()));
+  check("ход вперёд: вердикт движка", ok, JSON.stringify({ ms: Date.now() - t0, text: await verdictLive() }));
 }
 
-// Долгое A (2 сек) — скрытый роустер.
+// Долгое A (2 сек) — скрытый роаст.
 {
   await focusCell();
   await page.keyboard.down("a");
   await page.waitForTimeout(2200);
   await page.keyboard.up("a");
   await page.waitForTimeout(150);
-  check("A (долгое 2 сек): скрытый роустер включён", (await live()).includes("Скрытый режим роустера включён"), await live());
+  check("A (долгое 2 сек): скрытый роаст включён", (await live()).includes("Скрытый режим роаста включён"), await live());
 }
 
-// Ход вперёд → неформальный вердикт роустера.
+// Ход вперёд → неформальный вердикт роаста (в polite-регион).
 {
   await page.click(sel + ' .chessjax-controls .chessjax-btn[aria-label="Следующий ход"]');
   const t0 = Date.now();
-  const ok = await waitFor(async () => ROOSTER.test(await live()));
-  check("роустер: неформальный вердикт", ok, JSON.stringify({ ms: Date.now() - t0, text: await live() }));
+  const ok = await waitFor(async () => ROAST.test(await verdictLive()));
+  check("роаст: неформальный вердикт", ok, JSON.stringify({ ms: Date.now() - t0, text: await verdictLive() }));
 }
 
-// Долгое A ещё раз — роустер выключен.
+// Долгое A ещё раз — роаст выключен.
 {
   await focusCell();
   await page.keyboard.down("a");
   await page.waitForTimeout(2200);
   await page.keyboard.up("a");
   await page.waitForTimeout(150);
-  check("A (долгое): роустер выключен", (await live()).includes("Роустер выключен"), await live());
+  check("A (долгое): роаст выключен", (await live()).includes("Режим роаста выключен"), await live());
 }
 
-// Короткое A — анализ партии выключен (роустер не оставил режим).
+// Короткое A — анализ партии выключен (роаст не оставил режим).
 {
   await focusCell();
   await page.keyboard.press("a");

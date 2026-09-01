@@ -45,8 +45,8 @@ const I18N = {
     gameAnalysis: "Анализ партии",
     gameAnalysisOn: "Анализ партии включён",
     gameAnalysisOff: "Анализ партии выключен",
-    roosterOn: "Скрытый режим роустера включён",
-    roosterOff: "Роустер выключен",
+    roastOn: "Скрытый режим роаста включён",
+    roastOff: "Режим роаста выключен",
     analyzing: "Идёт анализ…",
     score: "Оценка",
     bestMove: "Лучший ход",
@@ -61,14 +61,18 @@ const I18N = {
       mistake: "Ошибка",
       blunder: "Грубая ошибка",
     },
-    rooster: {
-      great: "Ооо, прекрасно!",
-      greatCapture: (p) => "Ооо, прекрасно съел " + { p: "пешку", n: "коня", b: "слона", r: "ладью", q: "ферзя", k: "короля" }[p] + "!",
-      good: "Неплохо!",
-      interesting: "О, интересно...",
-      inaccuracy: "Так себе, но вроде ладно...",
-      mistake: "Хм, не лучшая идея...",
-      blunder: "Ход полная хрень!",
+    roast: {
+      great: ["Ооо, прекрасно!", "Вау, вот это ход!", "Мастерски!", "Красота!"],
+      greatCapture: [
+        (p) => "Ооо, прекрасно съел " + { p: "пешку", n: "коня", b: "слона", r: "ладью", q: "ферзя", k: "короля" }[p] + "!",
+        (p) => "Ням, " + { p: "пешка", n: "конь", b: "слон", r: "ладья", q: "ферзь", k: "король" }[p] + " был вкусный!",
+        (p) => "И " + { p: "пешка", n: "конь", b: "слон", r: "ладья", q: "ферзь", k: "король" }[p] + " отправился в утиль!",
+      ],
+      good: ["Неплохо!", "Норм!", "Сойдёт!"],
+      interesting: ["О, интересно...", "Хм, любопытно...", "Что-то задумал..."],
+      inaccuracy: ["Так себе, но вроде ладно...", "Не уверен в этом...", "Могло быть и лучше..."],
+      mistake: ["Хм, не лучшая идея...", "Рискованно...", "Ой..."],
+      blunder: ["Ход полная хрень!", "Что ты делаешь?!", "Это провал!"],
     },
     adv: { w: "Преимущество белых", b: "Преимущество чёрных" },
     equalPosition: "Позиция равная",
@@ -77,7 +81,7 @@ const I18N = {
       "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты.",
       "Ходы и комментарии. Контрол и стрелки влево и вправо — предыдущий и следующий ход. Ход озвучивается фигурой и координатами, после него читается комментарий из записи партии.",
       "Воспроизведение. Пробел — автоматический просмотр ходов с начала партии. Контрол и пробел — продолжить с текущего хода, повторное нажатие — пауза.",
-      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, лучший ход, анализ партии. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша B — лучший ход в текущей позиции: оценка и ход движка. Клавиша A — анализ партии: каждый ход с вердиктом и преимуществом, повторное нажатие — выключить. Удерживайте A две секунды — скрытый режим роустера с неформальными вердиктами. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
+      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, лучший ход, анализ партии. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша B — лучший ход в текущей позиции: оценка и ход движка. Клавиша A — анализ партии: каждый ход с вердиктом и преимуществом, повторное нажатие — выключить. Удерживайте A две секунды — скрытый режим роаста с неформальными вердиктами. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
     ],
     helpEnd: "Инструкция закрыта.",
     commentLabel: "Комментарий",
@@ -121,8 +125,8 @@ const I18N = {
     gameAnalysis: "Game analysis",
     gameAnalysisOn: "Game analysis on",
     gameAnalysisOff: "Game analysis off",
-    roosterOn: "Hidden rooster mode on",
-    roosterOff: "Rooster mode off",
+    roastOn: "Hidden roast mode on",
+    roastOff: "Roast mode off",
     analyzing: "Analyzing…",
     score: "Score",
     bestMove: "Best move",
@@ -137,14 +141,17 @@ const I18N = {
       mistake: "Mistake",
       blunder: "Blunder",
     },
-    rooster: {
-      great: "Oh, brilliant!",
-      greatCapture: (p, pieces) => "Oh, brilliantly gobbled the " + pieces[p] + "!",
-      good: "Not bad!",
-      interesting: "Hmm, interesting...",
-      inaccuracy: "Meh, fine I guess...",
-      mistake: "Hmm, not your best idea...",
-      blunder: "That move is total crap!",
+    roast: {
+      great: ["Oh, brilliant!", "Wow, what a move!", "Masterful!"],
+      greatCapture: [
+        (p, pieces) => "Oh, brilliantly gobbled the " + pieces[p] + "!",
+        (p, pieces) => "Yum, that " + pieces[p] + " was tasty!",
+      ],
+      good: ["Not bad!", "Alright!", "Fine!"],
+      interesting: ["Hmm, interesting...", "Curious..."],
+      inaccuracy: ["Meh, fine I guess...", "Not sure about that..."],
+      mistake: ["Hmm, not your best idea...", "Risky..."],
+      blunder: ["That move is total crap!", "What are you doing?!"],
     },
     adv: { w: "White advantage", b: "Black advantage" },
     equalPosition: "Equal position",
@@ -153,7 +160,7 @@ const I18N = {
       "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates.",
       "Moves and comments. Control plus arrow left and right step to the previous and next move. Each move is announced with the piece and squares, followed by the comment from the game record.",
       "Playback. Space starts automatic playthrough from the beginning of the game. Control plus space continues from the current move; pressing again pauses.",
-      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, best move, game analysis. Press F for fullscreen, press again or escape to exit. Press B for the best move in the current position: score and the engine's move. Press A to toggle game analysis: each move with a verdict and the advantage; press again to turn off. Hold A for two seconds to enable the hidden rooster mode with informal verdicts. Press H for the next help section; after the last one it closes.",
+      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, best move, game analysis. Press F for fullscreen, press again or escape to exit. Press B for the best move in the current position: score and the engine's move. Press A to toggle game analysis: each move with a verdict and the advantage; press again to turn off. Hold A for two seconds to enable the hidden roast mode with informal verdicts. Press H for the next help section; after the last one it closes.",
     ],
     helpEnd: "Help closed.",
     commentLabel: "Comment",
@@ -197,8 +204,8 @@ const I18N = {
     gameAnalysis: "Partieanalyse",
     gameAnalysisOn: "Partieanalyse an",
     gameAnalysisOff: "Partieanalyse aus",
-    roosterOn: "Versteckter Hahn-Modus an",
-    roosterOff: "Hahn-Modus aus",
+    roastOn: "Versteckter Roast-Modus an",
+    roastOff: "Roast-Modus aus",
     analyzing: "Analyse läuft…",
     score: "Bewertung",
     bestMove: "Bester Zug",
@@ -213,14 +220,14 @@ const I18N = {
       mistake: "Fehler",
       blunder: "Schwerer Fehler",
     },
-    rooster: {
-      great: "Oh, großartig!",
-      greatCapture: (p, pieces) => "Oh, großartig den " + pieces[p] + " geschlagen!",
-      good: "Nicht schlecht!",
-      interesting: "Hmm, interessant...",
-      inaccuracy: "Naja, geht so...",
-      mistake: "Hmm, keine gute Idee...",
-      blunder: "Der Zug ist totaler Mist!",
+    roast: {
+      great: ["Oh, großartig!", "Wow, was für ein Zug!", "Meisterhaft!"],
+      greatCapture: [(p, pieces) => "Oh, großartig den " + pieces[p] + " geschlagen!"],
+      good: ["Nicht schlecht!", "Okay!"],
+      interesting: ["Hmm, interessant..."],
+      inaccuracy: ["Naja, geht so...", "Bin nicht sicher..."],
+      mistake: ["Hmm, keine gute Idee...", "Riskant..."],
+      blunder: ["Der Zug ist totaler Mist!", "Was machst du da?!"],
     },
     adv: { w: "Weißer Vorteil", b: "Schwarzer Vorteil" },
     equalPosition: "Ausgeglichene Stellung",
@@ -229,7 +236,7 @@ const I18N = {
       "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten.",
       "Züge und Kommentare. Strg plus Pfeil links und rechts — vorheriger und nächster Zug. Der Zug wird mit Figur und Feldern angesagt, danach der Kommentar aus der Partie.",
       "Wiedergabe. Leertaste — automatisches Abspielen der Züge von Anfang an. Strg und Leertaste — vom aktuellen Zug weiter; erneut drücken — Pause.",
-      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild, bester Zug, Partieanalyse. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste B — bester Zug in der aktuellen Stellung: Bewertung und Engine-Zug. Taste A — Partieanalyse: jeder Zug mit Urteil und Vorteil; erneut drücken — aus. Taste A zwei Sekunden gedrückt halten — versteckter Hahn-Modus mit lockeren Urteilen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
+      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild, bester Zug, Partieanalyse. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste B — bester Zug in der aktuellen Stellung: Bewertung und Engine-Zug. Taste A — Partieanalyse: jeder Zug mit Urteil und Vorteil; erneut drücken — aus. Taste A zwei Sekunden gedrückt halten — versteckter Roast-Modus mit lockeren Urteilen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
     ],
     helpEnd: "Hilfe geschlossen.",
     commentLabel: "Kommentar",
@@ -273,8 +280,8 @@ const I18N = {
     gameAnalysis: "Oyun analizi",
     gameAnalysisOn: "Oyun analizi açık",
     gameAnalysisOff: "Oyun analizi kapalı",
-    roosterOn: "Gizli horoz modu açık",
-    roosterOff: "Horoz modu kapalı",
+    roastOn: "Gizli roast modu açık",
+    roastOff: "Roast modu kapalı",
     analyzing: "Analiz ediliyor…",
     score: "Değerlendirme",
     bestMove: "En iyi hamle",
@@ -289,14 +296,14 @@ const I18N = {
       mistake: "Hata",
       blunder: "Büyük hata",
     },
-    rooster: {
-      great: "Oh, harika!",
-      greatCapture: (p, pieces) => "Oh, " + pieces[p] + " almak harika!",
-      good: "Fena değil!",
-      interesting: "Hmm, ilginç...",
-      inaccuracy: "Eh, idare eder...",
-      mistake: "Hmm, iyi fikir değil...",
-      blunder: "Bu hamle tam bir çöp!",
+    roast: {
+      great: ["Oh, harika!", "Vay canına, ne hamle!", "Ustalıkla!"],
+      greatCapture: [(p, pieces) => "Oh, " + pieces[p] + " almak harika!"],
+      good: ["Fena değil!", "Okey!"],
+      interesting: ["Hmm, ilginç...", "Merak uyandırdı..."],
+      inaccuracy: ["Eh, idare eder...", "Emin değilim..."],
+      mistake: ["Hmm, iyi fikir değil...", "Riskli..."],
+      blunder: ["Bu hamle tam bir çöp!", "Ne yapıyorsun?!"],
     },
     adv: { w: "Beyaz avantaj", b: "Siyah avantaj" },
     equalPosition: "Konum dengede",
@@ -305,7 +312,7 @@ const I18N = {
       "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız.",
       "Hamleler ve yorumlar. Kontrol ve sol/sağ oklar — önceki ve sonraki hamle. Hamle taş ve karelerle okunur, ardından kayıttaki yorum söylenir.",
       "Oynatma. Boşluk — hamleleri baştan otomatik oynatır. Kontrol ve boşluk — mevcut hamleden devam eder; tekrar basın — duraklatır.",
-      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran, en iyi hamle, oyun analizi. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. B tuşu — mevcut pozisyondaki en iyi hamle: değerlendirme ve motor hamlesi. A tuşu — oyun analizi: her hamle için yorum ve avantaj; tekrar basın — kapatır. A tuşuna iki saniye basılı tutun — gayriresmî yorumlar veren gizli horoz modu. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
+      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran, en iyi hamle, oyun analizi. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. B tuşu — mevcut pozisyondaki en iyi hamle: değerlendirme ve motor hamlesi. A tuşu — oyun analizi: her hamle için yorum ve avantaj; tekrar basın — kapatır. A tuşuna iki saniye basılı tutun — gayriresmî yorumlar veren gizli roast modu. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
     ],
     helpEnd: "Yardım kapatıldı.",
     commentLabel: "Yorum",
@@ -600,6 +607,17 @@ function speak(el, text) {
   setTimeout(() => { el.textContent = text; }, 60);
 }
 
+// Банк фраз роаста: случайная фраза без повтора подряд.
+const _lastRoast = {};
+function roastPhrase(bank, key, ...args) {
+  const arr = Array.isArray(bank) && bank.length ? bank : [bank];
+  let i = Math.floor(Math.random() * arr.length);
+  if (arr.length > 1 && i === _lastRoast[key]) i = (i + 1) % arr.length;
+  _lastRoast[key] = i;
+  const phrase = arr[i];
+  return typeof phrase === "function" ? phrase(...args) : phrase;
+}
+
 // --- Звуки ходов -------------------------------------------------------------
 // Деревянные записи с sounddino.com (free / royalty-free / no attribution),
 // нарезанные в sound/*.mp3. Разные фигуры — реальные удары разного веса
@@ -814,8 +832,8 @@ class ChessboardElement extends HTMLElement {
     this._analyzing = false; // идёт ли расчёт прямо сейчас
     this._analysisFen = null; // фен позиции, по которой запущен текущий анализ
     this._analysisMode = "off"; // анализ партии: вердикт каждому ходу при навигации
-    this._rooster = false; // скрытый режим роустера: неформальные вердикты
-    this._aLongTimer = null; // таймер длинного нажатия A (2 сек → роустер)
+    this._roast = false; // скрытый режим роаста: неформальные вердикты
+    this._aLongTimer = null; // таймер длинного нажатия A (2 сек → роаст)
     this._aLongDone = false; // сработало ли длинное нажатие — чтобы keyup не дёрнул режим партии
     this._root = this.attachShadow ? null : this; // Shadow DOM отключён: таблица должна оставаться в светлом DOM для скринридеров.
   }
@@ -882,6 +900,15 @@ class ChessboardElement extends HTMLElement {
     this._live.className = "chessjax-live";
     this._live.setAttribute("aria-live", "assertive");
     wrap.appendChild(this._live);
+
+    // Вердикт анализа партии — отдельный скрытый live-регион с polite:
+    // не перебивает озвучку хода (assertive), а произносится после неё.
+    this._verdictLive = document.createElement("p");
+    this._verdictLive.className = "chessjax-verdict-live";
+    this._verdictLive.setAttribute("aria-live", "polite");
+    this._verdictLive.style.cssText =
+      "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap";
+    wrap.appendChild(this._verdictLive);
 
     // Справка по клавишам: видимая для зрячих, для скринридера озвучивается
     // через _live. Открывается/листается клавишей H.
@@ -1086,7 +1113,7 @@ class ChessboardElement extends HTMLElement {
         this._aLongDone = true;
         this._aLongTimer = null;
         unlockAudio();
-        this.toggleRooster();
+        this.toggleRoast();
       }, 2000);
       return;
     }
@@ -1250,24 +1277,24 @@ class ChessboardElement extends HTMLElement {
     this._analysisMode = this._analysisMode === "on" ? "off" : "on";
     const t = I18N[this.lang] || I18N.ru;
     if (this._analysisMode === "on") {
-      speak(this._live, this._rooster ? t.roosterOn : t.gameAnalysisOn);
+      speak(this._live, this._roast ? t.roastOn : t.gameAnalysisOn);
       if (this._current) requestAnalysis(this._current.fen); // прогреть движок и текущую позицию
     } else {
       speak(this._live, t.gameAnalysisOff);
     }
   }
 
-  // Скрытый режим роустера: удержание A 2 секунды. Движок хвалит/ругает ходы
+  // Скрытый режим роаста: удержание A 2 секунды. Движок хвалит/ругает ходы
   // неформально; включает анализ партии, если тот был выключен.
-  toggleRooster() {
-    this._rooster = !this._rooster;
+  toggleRoast() {
+    this._roast = !this._roast;
     const t = I18N[this.lang] || I18N.ru;
-    if (this._rooster) {
+    if (this._roast) {
       this._analysisMode = "on";
-      speak(this._live, t.roosterOn);
+      speak(this._live, t.roastOn);
       if (this._current) requestAnalysis(this._current.fen);
     } else {
-      speak(this._live, t.roosterOff);
+      speak(this._live, t.roastOff);
     }
   }
 
@@ -1320,16 +1347,21 @@ class ChessboardElement extends HTMLElement {
     const t = I18N[this.lang] || I18N.ru;
     const verdict = this._verdictFor(actualUci, prevR, curR);
     let vText;
-    if (this._rooster) {
-      vText =
-        verdict === "great" && move.captured && typeof t.rooster.greatCapture === "function"
-          ? t.rooster.greatCapture(move.captured, t.pieces)
-          : t.rooster[verdict];
+    if (this._roast) {
+      // Банк фраз роаста: «great» со взятием — отдельный набор. Обычный вердикт —
+      // подстраховка, если в банке нет такой категории.
+      const bank =
+        verdict === "great" && move.captured
+          ? t.roast.greatCapture
+          : t.roast[verdict] || t.verdict[verdict];
+      vText = roastPhrase(bank, "roast:" + verdict + (move.captured ? ":cap" : ""), move.captured);
     } else {
       vText = t.verdict[verdict];
     }
     const curCp = curR ? -scoreToCp(curR) : scoreToCp(prevR);
-    speak(this._live, vText + ". " + this._advantageText(curCp, move.color, t));
+    // Вердикт — в polite-регион: NVDA сначала дочитывает ход (assertive _live),
+    // затем произносит вердикт единым потоком, не перебивая навигацию.
+    speak(this._verdictLive, vText + ". " + this._advantageText(curCp, move.color, t));
   }
 
   _verdictFor(actualUci, prevR, curR) {
