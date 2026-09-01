@@ -80,32 +80,26 @@ button:hover, button:focus-visible {
 #board { display: inline-block; }
 
 .chessjax-board {
-  border-collapse: collapse;
+  display: grid;
+  grid-template-columns: repeat(8, 52px);
   background: var(--bg-panel);
   border: 1px solid var(--border);
 }
 
-.chessjax-board th {
-  color: var(--fg-muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0.2rem 0.4rem;
-  text-align: center;
-}
-
-.chessjax-board td {
+.chessjax-cell {
   width: 52px;
   height: 52px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.7rem;
-  line-height: 52px;
 }
 
-.chessjax-board td.square-dark { background: #769656; }
-.chessjax-board td.square-light { background: #eeeed2; }
+.chessjax-cell.square-dark { background: #769656; }
+.chessjax-cell.square-light { background: #eeeed2; }
 
-.chessjax-board td.piece-w { color: #fff; text-shadow: 0 0 2px #000; }
-.chessjax-board td.piece-b { color: #000; text-shadow: 0 0 2px #fff; }
+.chessjax-cell.piece-w { color: #fff; text-shadow: 0 0 2px #000; }
+.chessjax-cell.piece-b { color: #000; text-shadow: 0 0 2px #fff; }
 
 .chessjax-summary {
   color: var(--fg-muted);

@@ -55,14 +55,16 @@ async function openPage(path) {
 
 {
   const { page, errors } = await openPage("/");
-  const rows = await page.locator(".chessjax-board tr").count();
-  const cells = await page.locator(".chessjax-board td").count();
-  check("демо: 9 строк", rows === 9, "rows=" + rows);
+  const cells = await page.locator(".chessjax-board .chessjax-cell").count();
+  const th = await page.locator(".chessjax-board th").count();
   check("демо: 64 клетки", cells === 64, "cells=" + cells);
+  check("демо: доска не таблица (нет th)", th === 0, "th=" + th);
 
-  const a1 = await page.locator('td[data-square="a1"]').getAttribute("aria-label");
+  const a1 = await page.locator('.chessjax-cell[data-square="a1"]').getAttribute("aria-label");
   check("демо: a1 = Белая ладья A1", a1 === "Белая ладья A1", a1);
-  const e4 = await page.locator('td[data-square="e4"]').getAttribute("aria-label");
+  const d1 = await page.locator('.chessjax-cell[data-square="d1"]').getAttribute("aria-label");
+  check("демо: d1 = Белый ферзь D1 (ферзь м.р.)", d1 === "Белый ферзь D1", d1);
+  const e4 = await page.locator('.chessjax-cell[data-square="e4"]').getAttribute("aria-label");
   check("демо: e4 (пустая) = E4", e4 === "E4", e4);
   const summary = await page.locator(".chessjax-summary").textContent();
   check("демо: summary «Ход белых»", summary.includes("Ход белых"), summary);
@@ -90,31 +92,31 @@ async function openPage(path) {
 
   // Доска загружена с pgn и показан 10-й ход белых (10.Nxb5) — конь белых на b5.
   await page.waitForTimeout(400);
-  const b5 = await page.locator('td[data-square="b5"]').getAttribute("aria-label");
+  const b5 = await page.locator('.chessjax-cell[data-square="b5"]').getAttribute("aria-label");
   check("story: 10-й ход — конь белых на b5", b5 === "Белый конь B5", b5);
   const summary = await page.locator(".chessjax-summary").textContent();
   check("story: после 10-го хода ход чёрных", summary.includes("Ход чёрных"), summary);
 
   // Навигация по клеткам стрелками (roving tabindex): a8 → b8 → b7 → a7.
-  await page.locator('td[data-square="a8"]').focus();
+  await page.locator('.chessjax-cell[data-square="a8"]').focus();
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(50);
   const cur1 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
   check("стрелка вправо: a8 → b8", cur1 === "b8", cur1);
-  const b8 = await page.locator('td[data-square="b8"]').getAttribute("aria-label");
+  const b8 = await page.locator('.chessjax-cell[data-square="b8"]').getAttribute("aria-label");
   check("b8 озвучен (Чёрный конь B8)", b8 === "Чёрный конь B8", b8);
   await page.keyboard.press("ArrowDown");
   await page.waitForTimeout(50);
   const cur2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
   check("стрелка вниз: b8 → b7", cur2 === "b7", cur2);
   // После 9...b5 на b7 пусто — озвучка просто координатой.
-  const b7 = await page.locator('td[data-square="b7"]').getAttribute("aria-label");
+  const b7 = await page.locator('.chessjax-cell[data-square="b7"]').getAttribute("aria-label");
   check("b7 (пустая) озвучен как B7", b7 === "B7", b7);
   await page.keyboard.press("ArrowLeft");
   await page.waitForTimeout(50);
   const cur3 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
   check("стрелка влево: b7 → a7", cur3 === "a7", cur3);
-  const a7 = await page.locator('td[data-square="a7"]').getAttribute("aria-label");
+  const a7 = await page.locator('.chessjax-cell[data-square="a7"]').getAttribute("aria-label");
   check("a7 озвучен (Чёрная пешка A7)", a7 === "Чёрная пешка A7", a7);
 
   // Фокус остаётся на той же клетке после смены хода: программный клик по кнопке
@@ -127,7 +129,7 @@ async function openPage(path) {
   // Кнопка текста move=17 → доска показывает мат: ладья белых на d8, озвучка «мат».
   await page.locator('button[chess="morphy"][move="17"]').click();
   await page.waitForTimeout(250);
-  const d8 = await page.locator('td[data-square="d8"]').getAttribute("aria-label");
+  const d8 = await page.locator('.chessjax-cell[data-square="d8"]').getAttribute("aria-label");
   check("story: после move=17 ладья на d8", d8 === "Белая ладья D8", d8);
   const live = await page.locator(".chessjax-live").textContent();
   check("story: озвучка мата", live.includes("мат") && live.includes("17"), live);

@@ -25,7 +25,7 @@ const I18N = {
     col: "колонка",
     row: "ряд",
     pieces: { k: "король", q: "ферзь", r: "ладья", b: "слон", n: "конь", p: "пешка" },
-    gender: { k: "m", q: "f", r: "f", b: "m", n: "m", p: "f" },
+    gender: { k: "m", q: "m", r: "f", b: "m", n: "m", p: "f" },
     color: { m: { w: "белый", b: "чёрный" }, f: { w: "белая", b: "чёрная" } },
     white: "Белые",
     black: "Чёрные",
@@ -261,66 +261,43 @@ export function positionIndex(moveSpec) {
 export function renderBoard(container, fen, opts = {}) {
   const lang = opts.language || "ru";
   const parsed = parseFen(fen);
-  container.replaceChildren(renderTable(parsed, lang), renderSummary(parsed, lang));
+  container.replaceChildren(renderGrid(parsed, lang), renderSummary(parsed, lang));
 }
 
-function renderTable(parsed, lang, opts = {}) {
-  const t = I18N[lang] || I18N.ru;
+// Доска — div-сетка, а НЕ HTML-таблица: NVDA в таблицах объявляет координаты
+// («строка N, столбец M») и заголовки строк/колонок, что многословно. Здесь
+// каждая клетка — фокусируемый div с aria-label «Чёрная пешка B7» / пустая «E5»,
+// скринридер читает только его. Заголовки не нужны: координату несёт сама клетка.
+function renderGrid(parsed, lang, opts = {}) {
   const activeSquare = opts.activeSquare;
-  const table = document.createElement("table");
-  table.className = "chessjax-board";
-  table.setAttribute("aria-label", t.board);
+  const board = document.createElement("div");
+  board.className = "chessjax-board";
 
-  const thead = document.createElement("thead");
-  const headRow = document.createElement("tr");
-  const corner = document.createElement("th");
-  corner.setAttribute("aria-hidden", "true");
-  headRow.appendChild(corner);
-  for (const f of FILES) {
-    const th = document.createElement("th");
-    th.scope = "col";
-    th.textContent = f;
-    th.setAttribute("aria-label", t.col + " " + f);
-    headRow.appendChild(th);
-  }
-  thead.appendChild(headRow);
-  table.appendChild(thead);
-
-  const tbody = document.createElement("tbody");
   for (let r = 0; r < 8; r++) {
     const rank = RANKS[r];
-    const tr = document.createElement("tr");
-    const th = document.createElement("th");
-    th.scope = "row";
-    th.textContent = rank;
-    th.setAttribute("aria-label", t.row + " " + rank);
-    tr.appendChild(th);
-
     for (let f = 0; f < 8; f++) {
       const file = FILES[f];
       const square = file + rank;
-      const td = document.createElement("td");
-      td.className = (f + r) % 2 === 0 ? "square-dark" : "square-light";
-      td.dataset.square = square;
+      const cell = document.createElement("div");
+      cell.className = "chessjax-cell " + ((f + r) % 2 === 0 ? "square-dark" : "square-light");
+      cell.dataset.square = square;
       // roving tabindex: только активная клетка в порядке таба, остальные доступны стрелками.
-      td.tabIndex = square === activeSquare ? 0 : -1;
+      cell.tabIndex = square === activeSquare ? 0 : -1;
       const piece = parsed.board.get(square);
       if (piece) {
-        td.classList.add("has-piece", "piece-" + piece.color);
-        td.textContent = GLYPH[piece.color === "w" ? piece.piece.toUpperCase() : piece.piece];
-        // «Белая ладья A1» — фигура перед координатой, как в шахматной нотации.
+        cell.classList.add("has-piece", "piece-" + piece.color);
+        cell.textContent = GLYPH[piece.color === "w" ? piece.piece.toUpperCase() : piece.piece];
+        // «Чёрный ферзь D5» — фигура (с родом из i18n) перед координатой.
         const label = pieceLabel(piece, lang);
-        td.setAttribute("aria-label", label.charAt(0).toUpperCase() + label.slice(1) + " " + square.toUpperCase());
+        cell.setAttribute("aria-label", label.charAt(0).toUpperCase() + label.slice(1) + " " + square.toUpperCase());
       } else {
-        td.textContent = " ";
-        td.setAttribute("aria-label", square.toUpperCase());
+        cell.textContent = " ";
+        cell.setAttribute("aria-label", square.toUpperCase());
       }
-      tr.appendChild(td);
+      board.appendChild(cell);
     }
-    tbody.appendChild(tr);
   }
-  table.appendChild(tbody);
-  return table;
+  return board;
 }
 
 function renderSummary(parsed, lang) {
@@ -489,14 +466,14 @@ class ChessboardElement extends HTMLElement {
     const parsed = parseFen(pos.fen);
 
     const activeEl = document.activeElement;
-    const hadCellFocus = !!(activeEl && activeEl.closest && activeEl.closest("td") && this._tableWrap.contains(activeEl));
-    const table = renderTable(parsed, lang, { activeSquare: this._activeSquare });
-    this._tableWrap.replaceChildren(table);
-    table.addEventListener("keydown", (e) => this._onBoardKeydown(e));
+    const hadCellFocus = !!(activeEl && activeEl.closest && activeEl.closest(".chessjax-cell") && this._tableWrap.contains(activeEl));
+    const grid = renderGrid(parsed, lang, { activeSquare: this._activeSquare });
+    this._tableWrap.replaceChildren(grid);
+    grid.addEventListener("keydown", (e) => this._onBoardKeydown(e));
     // Фокус был на клетке — восстанавливаем на той же координате после перерисовки.
     if (hadCellFocus) {
-      const td = table.querySelector(`td[data-square="${this._activeSquare}"]`);
-      if (td) td.focus();
+      const cell = grid.querySelector(`[data-square="${this._activeSquare}"]`);
+      if (cell) cell.focus();
     }
 
     this._summary.textContent = fenSummary(parsed, lang);
@@ -529,10 +506,10 @@ class ChessboardElement extends HTMLElement {
   }
 
   _applyActiveTabindex() {
-    for (const c of this._tableWrap.querySelectorAll("td")) {
+    for (const c of this._tableWrap.querySelectorAll(".chessjax-cell")) {
       c.tabIndex = c.dataset.square === this._activeSquare ? 0 : -1;
     }
-    const target = this._tableWrap.querySelector(`td[data-square="${this._activeSquare}"]`);
+    const target = this._tableWrap.querySelector(`[data-square="${this._activeSquare}"]`);
     if (target) target.focus();
   }
 
