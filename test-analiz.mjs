@@ -1,6 +1,6 @@
-// Анализ позиции движком Stockfish (клавиша A / кнопка Σ) — chessjax v0.5.0.
-// Движок грузится с jsdelivr (npm/stockfish@10.0.2) лениво: до первого
-// запроса анализа никаких сетевых обращений к нему быть не должно.
+// Анализ chessjax v0.5.1: лучший ход (B/★), анализ партии (A/Σ), скрытый
+// роустер (долгое A 2 сек). Движок Stockfish с jsdelivr грузится лениво —
+// до первого запроса анализа никаких сетевых обращений к нему быть не должно.
 // Запуск: node test-analiz.mjs (playwright + chromium, локальный http-сервер).
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,7 @@ import http from "node:http";
 import { extname } from "node:path";
 
 const dir = fileURLToPath(new URL("./", import.meta.url));
-const mime = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css" };
+const mime = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".pgn": "text/plain" };
 const server = http.createServer(async (req, res) => {
   try {
     const path = new URL(req.url, "http://x").pathname;
@@ -36,104 +36,122 @@ const page = await browser.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 page.on("console", (m) => { if (m.type() === "error") errors.push("[console] " + m.text()); });
-
-// Сетевые запросы к движку (loader/wasm с jsdelivr).
 const sfReqs = [];
-page.on("request", (r) => {
-  if (r.url().includes("stockfish")) sfReqs.push(r.url());
-});
+page.on("request", (r) => { if (r.url().includes("stockfish")) sfReqs.push(r.url()); });
 
-await page.goto(base + "/", { waitUntil: "domcontentloaded" });
-await page.waitForSelector("#demo .chessjax-board", { timeout: 30000 });
+// Доска с партией (Опера-партия Морфи) — для вердиктов ходам нужны ходы.
+await page.goto(base + "/examples/story.html", { waitUntil: "domcontentloaded" });
+await page.waitForSelector("#morphy .chessjax-board", { timeout: 30000 });
+const sel = "#morphy";
 
-// Кнопки управления: ⏮ ← → ▶ ⛶ Σ — ровно 6.
 {
-  const n = await page.locator("#demo .chessjax-controls .chessjax-btn").count();
-  check("контролы: 6 кнопок (⏮ ← → ▶ ⛶ Σ)", n === 6, "count=" + n);
+  const n = await page.locator(sel + " .chessjax-controls .chessjax-btn").count();
+  check("контролы: 7 кнопок (⏮ ← → ▶ ⛶ ★ Σ)", n === 7, "count=" + n);
 }
+check("ленивая загрузка: до первого запроса анализа запросов к движку нет", sfReqs.length === 0, sfReqs.join(" | "));
 
-// Ленивая загрузка: до первого запроса анализа запросов к Stockfish нет.
-check("ленивая загрузка: до A запросов к движку нет", sfReqs.length === 0, sfReqs.join(" | "));
-
-async function liveText() {
-  return (await page.locator("#demo .chessjax-live").textContent() || "").trim();
+async function live() {
+  return (await page.locator(sel + " .chessjax-live").textContent() || "").trim();
 }
-async function hlCount() {
-  return page.locator("#demo .chessjax-cell.analysis-move").count();
+async function hl() {
+  return page.locator(sel + " .chessjax-cell.analysis-move").count();
 }
-
-// Дождаться результата анализа: либо озвучка результата, либо подсветка,
-// либо (на провал) — текст ошибки движка.
-async function waitAnalysis(timeout = 60000) {
+async function focusCell() {
+  await page.locator(sel + ' .chessjax-cell[data-square="a8"]').focus();
+}
+async function waitFor(pred, timeout = 40000) {
   const t0 = Date.now();
   while (Date.now() - t0 < timeout) {
-    const [text, hl] = await Promise.all([liveText(), hlCount()]);
-    if (hl >= 2 && text.includes("Лучший ход")) return { text, hl };
-    if (text.includes("Анализ снят") && hl === 0) return { text, hl };
-    if (text.includes("не удалось загрузить движок")) return { text, hl, err: true };
-    await page.waitForTimeout(400);
+    if (await pred()) return true;
+    await page.waitForTimeout(300);
   }
-  return { text: await liveText(), hl: await hlCount(), timeout: true };
+  return false;
 }
+const VERDICT = /Прекрасный ход|Хороший ход|Интересный ход|Неточность|Грубая ошибка|Позиция равная|Преимущество/;
+const ROOSTER = /Ооо|Неплохо|О, интересно|Так себе|не лучшая идея|полная хрень|Преимущество/;
 
-async function pressA() {
-  await page.locator('#demo .chessjax-cell[data-square="a8"]').focus();
-  await page.keyboard.press("a");
-}
-
-// Клавиша A — анализ стартует (озвучка «Идёт анализ…») и приходит результат.
+// B: лучший ход в текущей позиции + подсветка 2 клеток + a11y-пометка.
 {
-  await pressA();
+  await focusCell();
+  await page.keyboard.press("b");
   const t0 = Date.now();
-  const pre = await liveText();
-  check("A: заявлен запрос к движку (ленивая загрузка сработала)", sfReqs.length >= 1, sfReqs.length + " reqs");
-  const res = await waitAnalysis();
-  const ms = Date.now() - t0;
-  check("A: результат — оценка и лучший ход", !res.timeout && !res.err, JSON.stringify({ ms, text: res.text, hl: res.hl, err: errors.join(" | ") }));
-  check("A: озвучено «Лучший ход»", res.text.includes("Лучший ход"), res.text);
-  check("A: подсвечено 2 клетки", res.hl === 2, "hl=" + res.hl);
-
-  // a11y подсветки: aria-label лучшей клетки помечен как «лучший ход».
-  const labels = await page.locator("#demo .chessjax-cell.analysis-move").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
-  const tagged = labels.filter((l) => l && l.toLowerCase().includes("лучший ход"));
-  check("A: aria-label подсвеченных клеток помечен «лучший ход»", tagged.length === labels.length, labels.join(" | "));
+  check("B: заявлен запрос к движку (ленивая загрузка сработала)", sfReqs.length >= 1, sfReqs.length + " reqs");
+  const ok = await waitFor(async () => /Лучший ход/.test(await live()));
+  check("B: результат — оценка и лучший ход", ok, JSON.stringify({ ms: Date.now() - t0, text: await live() }));
+  check("B: подсвечено 2 клетки", (await hl()) === 2, "hl=" + (await hl()));
+  const labels = await page.locator(sel + " .chessjax-cell.analysis-move").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") || ""));
+  check("B: aria-label подсвеченных клеток помечен «лучший ход»", labels.every((l) => l.toLowerCase().includes("лучший ход")), labels.join(" | "));
 }
 
-// Повторное A — анализ снимается.
+// Esc — снимает подсветку.
 {
-  await pressA();
-  const t0 = Date.now();
-  let text = await liveText();
-  let hl = await hlCount();
-  while (Date.now() - t0 < 3000 && !(text.includes("Анализ снят") && hl === 0)) {
-    await page.waitForTimeout(200);
-    [text, hl] = await Promise.all([liveText(), hlCount()]);
-  }
-  check("повторное A: «Анализ снят», подсветка убрана", text.includes("Анализ снят") && hl === 0, text + " / hl=" + hl);
-}
-
-// Кнопка Σ — анализ снова работает.
-{
-  const before = sfReqs.length;
-  await page.click("#demo .chessjax-controls .chessjax-btn:has-text('Σ')");
-  const res = await waitAnalysis();
-  check("кнопка Σ: результат получен", !res.timeout && !res.err, JSON.stringify({ text: res.text, hl: res.hl }));
-  check("кнопка Σ: новые запросы к движку (переиспользуется, был-кэш)", sfReqs.length >= before, sfReqs.length + " vs " + before);
-}
-
-// Esc — снимает анализ.
-{
-  await page.locator('#demo .chessjax-cell[data-square="a8"]').focus();
+  await focusCell();
   await page.keyboard.press("Escape");
-  const t0 = Date.now();
-  let text = await liveText();
-  let hl = await hlCount();
-  while (Date.now() - t0 < 3000 && !(text.includes("Анализ снят") && hl === 0)) {
-    await page.waitForTimeout(200);
-    [text, hl] = await Promise.all([liveText(), hlCount()]);
-  }
-  check("Esc: «Анализ снят», подсветка убрана", text.includes("Анализ снят") && hl === 0, text + " / hl=" + hl);
+  await page.waitForTimeout(200);
+  check("Esc: подсветка убрана", (await hl()) === 0, "hl=" + (await hl()));
 }
+
+// Короткое A — анализ партии включён.
+{
+  await focusCell();
+  await page.keyboard.press("a");
+  await page.waitForTimeout(150);
+  check("A (короткое): режим анализа партии включён", (await live()).includes("Анализ партии включён"), await live());
+}
+
+// Навигация вперёд → вердикт движка ходу.
+{
+  await page.click(sel + ' .chessjax-controls .chessjax-btn[aria-label="Следующий ход"]');
+  const t0 = Date.now();
+  const ok = await waitFor(async () => VERDICT.test(await live()));
+  check("ход вперёд: вердикт движка", ok, JSON.stringify({ ms: Date.now() - t0, text: await live() }));
+}
+
+// Долгое A (2 сек) — скрытый роустер.
+{
+  await focusCell();
+  await page.keyboard.down("a");
+  await page.waitForTimeout(2200);
+  await page.keyboard.up("a");
+  await page.waitForTimeout(150);
+  check("A (долгое 2 сек): скрытый роустер включён", (await live()).includes("Скрытый режим роустера включён"), await live());
+}
+
+// Ход вперёд → неформальный вердикт роустера.
+{
+  await page.click(sel + ' .chessjax-controls .chessjax-btn[aria-label="Следующий ход"]');
+  const t0 = Date.now();
+  const ok = await waitFor(async () => ROOSTER.test(await live()));
+  check("роустер: неформальный вердикт", ok, JSON.stringify({ ms: Date.now() - t0, text: await live() }));
+}
+
+// Долгое A ещё раз — роустер выключен.
+{
+  await focusCell();
+  await page.keyboard.down("a");
+  await page.waitForTimeout(2200);
+  await page.keyboard.up("a");
+  await page.waitForTimeout(150);
+  check("A (долгое): роустер выключен", (await live()).includes("Роустер выключен"), await live());
+}
+
+// Короткое A — анализ партии выключен (роустер не оставил режим).
+{
+  await focusCell();
+  await page.keyboard.press("a");
+  await page.waitForTimeout(150);
+  check("A (короткое): анализ партии выключен", (await live()).includes("Анализ партии выключен"), await live());
+}
+
+// Кнопка ★ — лучший ход снова работает.
+{
+  await page.click(sel + ' .chessjax-controls .chessjax-btn[aria-label="Лучший ход"]');
+  const ok = await waitFor(async () => /Лучший ход/.test(await live()));
+  check("кнопка ★: результат получен", ok, await live());
+}
+
+const fatal = errors.filter((e) => !/An unknown error/.test(e));
+check("нет фатальных ошибок консоли", fatal.length === 0, fatal.join(" | "));
 
 console.log(`\n=== ${failed === 0 ? "ALL PASS" : failed + " FAILURES"} ===`);
 console.log("page errors:", errors.join(" | ") || "none");

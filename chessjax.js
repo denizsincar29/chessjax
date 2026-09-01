@@ -42,19 +42,42 @@ const I18N = {
     exitFullscreen: "Выйти из полноэкранного режима",
     fullscreenOn: "Полноэкранный режим",
     fullscreenOff: "Полноэкранный режим выключен",
-    analyze: "Анализ позиции",
+    gameAnalysis: "Анализ партии",
+    gameAnalysisOn: "Анализ партии включён",
+    gameAnalysisOff: "Анализ партии выключен",
+    roosterOn: "Скрытый режим роустера включён",
+    roosterOff: "Роустер выключен",
     analyzing: "Идёт анализ…",
     score: "Оценка",
     bestMove: "Лучший ход",
     mateIn: (n) => "мат в " + n,
     analysisCleared: "Анализ снят",
     analysisError: "Анализ: не удалось загрузить движок",
+    verdict: {
+      great: "Прекрасный ход",
+      good: "Хороший ход",
+      interesting: "Интересный ход",
+      inaccuracy: "Неточность",
+      mistake: "Ошибка",
+      blunder: "Грубая ошибка",
+    },
+    rooster: {
+      great: "Ооо, прекрасно!",
+      greatCapture: (p) => "Ооо, прекрасно съел " + { p: "пешку", n: "коня", b: "слона", r: "ладью", q: "ферзя", k: "короля" }[p] + "!",
+      good: "Неплохо!",
+      interesting: "О, интересно...",
+      inaccuracy: "Так себе, но вроде ладно...",
+      mistake: "Хм, не лучшая идея...",
+      blunder: "Ход полная хрень!",
+    },
+    adv: { w: "Преимущество белых", b: "Преимущество чёрных" },
+    equalPosition: "Позиция равная",
     intro: "Шахматная доска. Для взаимодействия включите режим редактирования NVDA или режим форм JAWS. Клавиша H — инструкция по управлению.",
     help: [
       "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты.",
       "Ходы и комментарии. Контрол и стрелки влево и вправо — предыдущий и следующий ход. Ход озвучивается фигурой и координатами, после него читается комментарий из записи партии.",
       "Воспроизведение. Пробел — автоматический просмотр ходов с начала партии. Контрол и пробел — продолжить с текущего хода, повторное нажатие — пауза.",
-      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, анализ. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша A — анализ текущей позиции: оценка и лучший ход, повторное нажатие или эскейп — снять подсветку. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
+      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, лучший ход, анализ партии. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша B — лучший ход в текущей позиции: оценка и ход движка. Клавиша A — анализ партии: каждый ход с вердиктом и преимуществом, повторное нажатие — выключить. Удерживайте A две секунды — скрытый режим роустера с неформальными вердиктами. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
     ],
     helpEnd: "Инструкция закрыта.",
     commentLabel: "Комментарий",
@@ -95,19 +118,42 @@ const I18N = {
     exitFullscreen: "Exit fullscreen",
     fullscreenOn: "Fullscreen mode",
     fullscreenOff: "Fullscreen mode off",
-    analyze: "Analyze position",
+    gameAnalysis: "Game analysis",
+    gameAnalysisOn: "Game analysis on",
+    gameAnalysisOff: "Game analysis off",
+    roosterOn: "Hidden rooster mode on",
+    roosterOff: "Rooster mode off",
     analyzing: "Analyzing…",
     score: "Score",
     bestMove: "Best move",
     mateIn: (n) => "mate in " + n,
     analysisCleared: "Analysis cleared",
     analysisError: "Analysis: could not load engine",
+    verdict: {
+      great: "Brilliant move",
+      good: "Good move",
+      interesting: "Interesting move",
+      inaccuracy: "Inaccuracy",
+      mistake: "Mistake",
+      blunder: "Blunder",
+    },
+    rooster: {
+      great: "Oh, brilliant!",
+      greatCapture: (p, pieces) => "Oh, brilliantly gobbled the " + pieces[p] + "!",
+      good: "Not bad!",
+      interesting: "Hmm, interesting...",
+      inaccuracy: "Meh, fine I guess...",
+      mistake: "Hmm, not your best idea...",
+      blunder: "That move is total crap!",
+    },
+    adv: { w: "White advantage", b: "Black advantage" },
+    equalPosition: "Equal position",
     intro: "Chessboard. To interact, switch NVDA to focus mode or JAWS to forms mode. Press H for usage instructions.",
     help: [
       "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates.",
       "Moves and comments. Control plus arrow left and right step to the previous and next move. Each move is announced with the piece and squares, followed by the comment from the game record.",
       "Playback. Space starts automatic playthrough from the beginning of the game. Control plus space continues from the current move; pressing again pauses.",
-      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, analysis. Press F for fullscreen, press again or escape to exit. Press A to analyze the current position: score and best move; press again or escape to clear the highlight. Press H for the next help section; after the last one it closes.",
+      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, best move, game analysis. Press F for fullscreen, press again or escape to exit. Press B for the best move in the current position: score and the engine's move. Press A to toggle game analysis: each move with a verdict and the advantage; press again to turn off. Hold A for two seconds to enable the hidden rooster mode with informal verdicts. Press H for the next help section; after the last one it closes.",
     ],
     helpEnd: "Help closed.",
     commentLabel: "Comment",
@@ -148,19 +194,42 @@ const I18N = {
     exitFullscreen: "Vollbild beenden",
     fullscreenOn: "Vollbildmodus",
     fullscreenOff: "Vollbildmodus aus",
-    analyze: "Position analysieren",
+    gameAnalysis: "Partieanalyse",
+    gameAnalysisOn: "Partieanalyse an",
+    gameAnalysisOff: "Partieanalyse aus",
+    roosterOn: "Versteckter Hahn-Modus an",
+    roosterOff: "Hahn-Modus aus",
     analyzing: "Analyse läuft…",
     score: "Bewertung",
     bestMove: "Bester Zug",
     mateIn: (n) => "Matt in " + n,
     analysisCleared: "Analyse entfernt",
     analysisError: "Analyse: Engine konnte nicht geladen werden",
+    verdict: {
+      great: "Großer Zug",
+      good: "Guter Zug",
+      interesting: "Interessanter Zug",
+      inaccuracy: "Ungenauigkeit",
+      mistake: "Fehler",
+      blunder: "Schwerer Fehler",
+    },
+    rooster: {
+      great: "Oh, großartig!",
+      greatCapture: (p, pieces) => "Oh, großartig den " + pieces[p] + " geschlagen!",
+      good: "Nicht schlecht!",
+      interesting: "Hmm, interessant...",
+      inaccuracy: "Naja, geht so...",
+      mistake: "Hmm, keine gute Idee...",
+      blunder: "Der Zug ist totaler Mist!",
+    },
+    adv: { w: "Weißer Vorteil", b: "Schwarzer Vorteil" },
+    equalPosition: "Ausgeglichene Stellung",
     intro: "Schachbrett. Zum Bedienen NVDA in den Fokusmodus oder JAWS in den Formularmodus schalten. Taste H — Bedienungsanleitung.",
     help: [
       "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten.",
       "Züge und Kommentare. Strg plus Pfeil links und rechts — vorheriger und nächster Zug. Der Zug wird mit Figur und Feldern angesagt, danach der Kommentar aus der Partie.",
       "Wiedergabe. Leertaste — automatisches Abspielen der Züge von Anfang an. Strg und Leertaste — vom aktuellen Zug weiter; erneut drücken — Pause.",
-      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild, Analyse. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste A — aktuelle Position analysieren: Bewertung und bester Zug; erneut drücken oder Escape — Hervorhebung entfernen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
+      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild, bester Zug, Partieanalyse. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste B — bester Zug in der aktuellen Stellung: Bewertung und Engine-Zug. Taste A — Partieanalyse: jeder Zug mit Urteil und Vorteil; erneut drücken — aus. Taste A zwei Sekunden gedrückt halten — versteckter Hahn-Modus mit lockeren Urteilen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
     ],
     helpEnd: "Hilfe geschlossen.",
     commentLabel: "Kommentar",
@@ -201,19 +270,42 @@ const I18N = {
     exitFullscreen: "Tam ekrandan çık",
     fullscreenOn: "Tam ekran modu",
     fullscreenOff: "Tam ekran modu kapalı",
-    analyze: "Pozisyonu analiz et",
+    gameAnalysis: "Oyun analizi",
+    gameAnalysisOn: "Oyun analizi açık",
+    gameAnalysisOff: "Oyun analizi kapalı",
+    roosterOn: "Gizli horoz modu açık",
+    roosterOff: "Horoz modu kapalı",
     analyzing: "Analiz ediliyor…",
     score: "Değerlendirme",
     bestMove: "En iyi hamle",
     mateIn: (n) => n + " hamlede mat",
     analysisCleared: "Analiz kaldırıldı",
     analysisError: "Analiz: motor yüklenemedi",
+    verdict: {
+      great: "Harika hamle",
+      good: "İyi hamle",
+      interesting: "İlginç hamle",
+      inaccuracy: "Yanlışlık",
+      mistake: "Hata",
+      blunder: "Büyük hata",
+    },
+    rooster: {
+      great: "Oh, harika!",
+      greatCapture: (p, pieces) => "Oh, " + pieces[p] + " almak harika!",
+      good: "Fena değil!",
+      interesting: "Hmm, ilginç...",
+      inaccuracy: "Eh, idare eder...",
+      mistake: "Hmm, iyi fikir değil...",
+      blunder: "Bu hamle tam bir çöp!",
+    },
+    adv: { w: "Beyaz avantaj", b: "Siyah avantaj" },
+    equalPosition: "Konum dengede",
     intro: "Satranç tahtası. Etkileşim için NVDA'da odak moduna veya JAWS'ta form moduna geçin. Kullanım talimatları için H tuşu.",
     help: [
       "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız.",
       "Hamleler ve yorumlar. Kontrol ve sol/sağ oklar — önceki ve sonraki hamle. Hamle taş ve karelerle okunur, ardından kayıttaki yorum söylenir.",
       "Oynatma. Boşluk — hamleleri baştan otomatik oynatır. Kontrol ve boşluk — mevcut hamleden devam eder; tekrar basın — duraklatır.",
-      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran, analiz. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. A tuşu — mevcut pozisyonu analiz eder: değerlendirme ve en iyi hamle; tekrar basmak veya Escape — vurguyu kaldırır. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
+      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran, en iyi hamle, oyun analizi. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. B tuşu — mevcut pozisyondaki en iyi hamle: değerlendirme ve motor hamlesi. A tuşu — oyun analizi: her hamle için yorum ve avantaj; tekrar basın — kapatır. A tuşuna iki saniye basılı tutun — gayriresmî yorumlar veren gizli horoz modu. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
     ],
     helpEnd: "Yardım kapatıldı.",
     commentLabel: "Yorum",
@@ -576,7 +668,12 @@ let analyzerSeq = 0;
 let activeAnalysis = null; // { seq, board }
 
 function getAnalyzer() {
-  if (!analyzerPromise) analyzerPromise = createAnalyzer();
+  if (!analyzerPromise) {
+    analyzerPromise = createAnalyzer().catch((err) => {
+      analyzerPromise = null; // при сбое дать ретрай следующему запросу
+      throw err;
+    });
+  }
   return analyzerPromise;
 }
 
@@ -603,29 +700,88 @@ function createAnalyzer() {
     });
 }
 
-// Запускает расчёт позиции. Промежуточные уточнения приходят в
-// board._onAnalysisInfo (с лучшим ходом), финал — board._onAnalysisDone(bestmove).
-function analyzePosition(fen, board) {
+// Promise-версия одного расчёта: резолвится {type, value, best, bestmove}.
+// Следующий запрос прерывает предыдущий (stop); lastInfo — последнее info с pv
+// (лучший ход по ходу расчёта), bestmove — финальный ответ движка.
+function analyzePosition(fen) {
   return getAnalyzer().then((worker) => {
     if (activeAnalysis) worker.postMessage("stop"); // прерываем предыдущий расчёт
     const seq = ++analyzerSeq;
-    activeAnalysis = { seq, board };
-    worker.onmessage = (e) => {
-      const line = typeof e.data === "string" ? e.data : "";
-      if (activeAnalysis && activeAnalysis.seq === seq) {
-        if (line.startsWith("info")) {
-          const r = parseInfo(line);
-          if (r && r.best) board._onAnalysisInfo(r);
-        } else if (line.startsWith("bestmove")) {
-          const done = activeAnalysis;
-          activeAnalysis = null;
-          done.board._onAnalysisDone(line);
+    activeAnalysis = { seq };
+    return new Promise((resolve, reject) => {
+      let lastInfo = null;
+      worker.onmessage = (e) => {
+        const line = typeof e.data === "string" ? e.data : "";
+        if (activeAnalysis && activeAnalysis.seq === seq) {
+          if (line.startsWith("info")) {
+            const r = parseInfo(line);
+            if (r) lastInfo = r;
+          } else if (line.startsWith("bestmove")) {
+            const done = activeAnalysis;
+            activeAnalysis = null;
+            const bestmove = (line.match(/bestmove\s+(\S+)/) || [])[1] || null;
+            resolve({
+              type: lastInfo ? lastInfo.type : null,
+              value: lastInfo ? lastInfo.value : 0,
+              best: lastInfo ? lastInfo.best : bestmove,
+              bestmove,
+            });
+          }
         }
-      }
-    };
-    worker.postMessage("position fen " + fen);
-    worker.postMessage("go depth " + ANALYSIS_DEPTH);
+      };
+      worker.onerror = () => reject(new Error("worker error"));
+      worker.postMessage("position fen " + fen);
+      worker.postMessage("go depth " + ANALYSIS_DEPTH);
+    });
   });
+}
+
+// Очередь расчётов с кэшем. Один worker на страницу, запросы выполняются строго
+// последовательно; приоритетные (лучший ход по B) встают в начало очереди.
+// Результат кэшируется по FEN — повторные запросы той же позиции дешёвые.
+const analysisCache = new Map(); // fen → Promise<result>
+const analysisQueue = []; // {fen, resolve, reject, priority}
+let analysisRunning = false;
+
+function requestAnalysis(fen, { priority = false } = {}) {
+  if (analysisCache.has(fen)) return analysisCache.get(fen);
+  const p = new Promise((resolve, reject) => {
+    const job = { fen, resolve, reject, priority };
+    if (priority) analysisQueue.unshift(job);
+    else analysisQueue.push(job);
+    pumpAnalysis();
+  });
+  analysisCache.set(fen, p); // кэшируем promise сразу — дубликатов fen не копим
+  return p;
+}
+
+function pumpAnalysis() {
+  if (analysisRunning || analysisQueue.length === 0) return;
+  const job = analysisQueue.shift();
+  analysisRunning = true;
+  analyzePosition(job.fen).then(
+    (result) => {
+      analysisRunning = false;
+      job.resolve(result);
+      pumpAnalysis();
+    },
+    (err) => {
+      analysisRunning = false;
+      analysisCache.delete(job.fen); // дать ретрай следующему запросу
+      job.reject(err);
+      pumpAnalysis();
+    }
+  );
+}
+
+// Оценка позиции в сотых пешки из перспективы стороны, которая ходит.
+// Мат → большая величина ±(100000 − 100·N).
+function scoreToCp(r) {
+  if (!r) return 0;
+  if (r.type === "mate") {
+    return r.value > 0 ? 100000 - 100 * r.value : -(100000 - 100 * Math.abs(r.value));
+  }
+  return r.value;
 }
 
 function parseInfo(line) {
@@ -657,6 +813,10 @@ class ChessboardElement extends HTMLElement {
     this._analysis = null; // результат анализа: {type, value, best} последнего info с pv
     this._analyzing = false; // идёт ли расчёт прямо сейчас
     this._analysisFen = null; // фен позиции, по которой запущен текущий анализ
+    this._analysisMode = "off"; // анализ партии: вердикт каждому ходу при навигации
+    this._rooster = false; // скрытый режим роустера: неформальные вердикты
+    this._aLongTimer = null; // таймер длинного нажатия A (2 сек → роустер)
+    this._aLongDone = false; // сработало ли длинное нажатие — чтобы keyup не дёрнул режим партии
     this._root = this.attachShadow ? null : this; // Shadow DOM отключён: таблица должна оставаться в светлом DOM для скринридеров.
   }
 
@@ -713,8 +873,9 @@ class ChessboardElement extends HTMLElement {
     this._btnPlay = mkButton(t.play, "▶", () => { unlockAudio(); this.togglePlay(); });
     this._btnNext = mkButton(t.next, "→", () => { unlockAudio(); this.next(); });
     this._btnFull = mkButton(t.fullscreen, "⛶", () => { unlockAudio(); this.toggleFullscreen(); });
-    this._btnAnalyze = mkButton(t.analyze, "Σ", () => { unlockAudio(); this.toggleAnalysis(); });
-    controls.append(this._btnRestart, this._btnPrev, this._btnPlay, this._btnNext, this._btnFull, this._btnAnalyze);
+    this._btnBest = mkButton(t.bestMove, "★", () => { unlockAudio(); this._announceBest(); });
+    this._btnAnalyze = mkButton(t.gameAnalysis, "Σ", () => { unlockAudio(); this.toggleGameAnalysis(); });
+    controls.append(this._btnRestart, this._btnPrev, this._btnPlay, this._btnNext, this._btnFull, this._btnBest, this._btnAnalyze);
     wrap.appendChild(controls);
 
     this._live = document.createElement("p");
@@ -735,6 +896,7 @@ class ChessboardElement extends HTMLElement {
     // Клавиши навешиваем один раз на постоянный контейнер — при перерисовке
     // доски (replaceChildren) слушатель на самом _tableWrap сохраняется.
     this._tableWrap.addEventListener("keydown", (e) => this._onBoardKeydown(e));
+    this._tableWrap.addEventListener("keyup", (e) => this._onBoardKeyup(e));
     this._tableWrap.addEventListener("focusin", (e) => this._onFocusIn(e));
   }
 
@@ -839,6 +1001,13 @@ class ChessboardElement extends HTMLElement {
         if (pos.comment) text += ". " + t.commentLabel + ": " + pos.comment;
         if (pos.variation && pos.variation.length) text += ". " + t.pressV;
         speak(this._live, text);
+        // Анализ партии: вердикт движка + преимущество по каждому ходу; префетч
+        // следующей позиции, чтобы вердикт при авто-шоу приходил без пауз.
+        if (this._analysisMode === "on" && pos.move) {
+          this._announceVerdict(pos.move, this._idx);
+          const ni = this._idx + 1;
+          if (ni < this._positions.length) requestAnalysis(this._positions[ni].fen);
+        }
       }
     }
   }
@@ -910,7 +1079,35 @@ class ChessboardElement extends HTMLElement {
     }
     if (key === "a" || key === "A") {
       e.preventDefault();
-      this.toggleAnalysis();
+      if (e.repeat) return; // авто-повтор клавиши не считаем
+      if (this._aLongTimer) clearTimeout(this._aLongTimer);
+      this._aLongDone = false;
+      this._aLongTimer = setTimeout(() => {
+        this._aLongDone = true;
+        this._aLongTimer = null;
+        unlockAudio();
+        this.toggleRooster();
+      }, 2000);
+      return;
+    }
+    if (key === "b" || key === "B") {
+      e.preventDefault();
+      unlockAudio();
+      this._announceBest();
+      return;
+    }
+  }
+
+  // Короткое нажатие A (меньше 2 секунд) — анализ партии. Длинное нажатие
+  // (2 секунды) уже обработано таймером в keydown, здесь keyup его не дублирует.
+  _onBoardKeyup(e) {
+    if ((e.key === "a" || e.key === "A") && !this._aLongDone) {
+      if (this._aLongTimer) {
+        clearTimeout(this._aLongTimer);
+        this._aLongTimer = null;
+      }
+      unlockAudio();
+      this.toggleGameAnalysis();
     }
   }
 
@@ -1047,56 +1244,113 @@ class ChessboardElement extends HTMLElement {
     }
   }
 
-  // Анализ позиции движком Stockfish (клавиша A / кнопка Σ). Движок грузится
-  // лениво, один раз на страницу, и живёт в отдельном worker'е — страница не
-  // виснет. Результат озвучивается и подсвечивается; подсветка доступна и
-  // скринридеру (в aria-label клеток добавлено «лучший ход»).
-  toggleAnalysis() {
-    if (this._analyzing || this._analysis) {
-      this._clearAnalysis();
-      return;
+  // Анализ партии (клавиша A / кнопка Σ): каждый ход при навигации озвучивается
+  // с вердиктом движка и преимуществом. Повторное нажатие — выключить.
+  toggleGameAnalysis() {
+    this._analysisMode = this._analysisMode === "on" ? "off" : "on";
+    const t = I18N[this.lang] || I18N.ru;
+    if (this._analysisMode === "on") {
+      speak(this._live, this._rooster ? t.roosterOn : t.gameAnalysisOn);
+      if (this._current) requestAnalysis(this._current.fen); // прогреть движок и текущую позицию
+    } else {
+      speak(this._live, t.gameAnalysisOff);
     }
-    this._requestAnalysis();
   }
 
-  _requestAnalysis() {
+  // Скрытый режим роустера: удержание A 2 секунды. Движок хвалит/ругает ходы
+  // неформально; включает анализ партии, если тот был выключен.
+  toggleRooster() {
+    this._rooster = !this._rooster;
+    const t = I18N[this.lang] || I18N.ru;
+    if (this._rooster) {
+      this._analysisMode = "on";
+      speak(this._live, t.roosterOn);
+      if (this._current) requestAnalysis(this._current.fen);
+    } else {
+      speak(this._live, t.roosterOff);
+    }
+  }
+
+  // Лучший ход в текущей позиции (клавиша B / кнопка ★): оценка, ход движка,
+  // подсветка поля. Приоритетный запрос — обходит очередь вердиктов.
+  async _announceBest() {
     const t = I18N[this.lang] || I18N.ru;
     if (!this._positions || !this._current) {
       speak(this._live, t.analysisError);
       return;
     }
+    const fen = this._current.fen;
     this._analyzing = true;
-    this._analysisFen = this._current.fen;
+    this._analysisFen = fen;
     speak(this._live, t.analyzing);
-    analyzePosition(this._analysisFen, this).catch(() => {
+    try {
+      const r = await requestAnalysis(fen, { priority: true });
+      if (!this.isConnected || this._analysisFen !== fen || !this._current || this._current.fen !== fen) return;
+      this._analyzing = false;
+      this._analysis = r;
+      const best = r.bestmove || r.best;
+      if (best && best !== "(none)") {
+        this._applyAnalysisHighlight();
+        speak(this._live, t.score + " " + this._scoreText(r, t) + ", " + t.bestMove + " " + this._moveText(best) + ".");
+      } else {
+        speak(this._live, t.analysisCleared);
+      }
+    } catch (e) {
       if (!this.isConnected) return;
       this._analyzing = false;
       speak(this._live, t.analysisError);
-    });
-  }
-
-  // Уточнение оценки по ходу расчёта: обновляем подсветку лучшего хода.
-  _onAnalysisInfo(r) {
-    if (!this.isConnected || !this._analysisFen) return; // расчёт снят — игнор
-    if (this._current && this._analysisFen !== this._current.fen) return; // позиция сменилась
-    this._analysis = r;
-    this._applyAnalysisHighlight();
-  }
-
-  // Финал расчёта (bestmove): финальная подсветка + озвучка результата.
-  _onAnalysisDone(line) {
-    if (!this.isConnected || !this._analysisFen) return; // расчёт снят — игнор
-    if (this._current && this._analysisFen !== this._current.fen) return; // позиция сменилась
-    this._analyzing = false;
-    const t = I18N[this.lang] || I18N.ru;
-    const r = this._analysis;
-    const best = (line.match(/bestmove\s+(\S+)/) || [])[1] || (r && r.best);
-    if (best && best !== "(none)") {
-      this._applyAnalysisHighlight();
-      speak(this._live, t.score + " " + this._scoreText(r, t) + ", " + t.bestMove + " " + this._moveText(best) + ".");
-    } else {
-      speak(this._live, t.analysisCleared);
     }
+  }
+
+  // Вердикт ходу в режиме анализа партии: сравнивает ход с лучшим ходом движка,
+  // иначе — потеря в оценке между позицией до и после хода.
+  async _announceVerdict(move, idx) {
+    const prevPos = this._positions[idx - 1];
+    const curPos = this._positions[idx];
+    if (!prevPos || !curPos) return;
+    const actualUci = move.from + move.to + (move.promotion || "");
+    let prevR = null;
+    let curR = null;
+    try {
+      [prevR, curR] = await Promise.all([requestAnalysis(prevPos.fen), requestAnalysis(curPos.fen)]);
+    } catch {
+      return; // движок не ответил — вердикта не будет
+    }
+    if (!this.isConnected || this._variant || this._idx !== idx || !prevR) return;
+    const t = I18N[this.lang] || I18N.ru;
+    const verdict = this._verdictFor(actualUci, prevR, curR);
+    let vText;
+    if (this._rooster) {
+      vText =
+        verdict === "great" && move.captured && typeof t.rooster.greatCapture === "function"
+          ? t.rooster.greatCapture(move.captured, t.pieces)
+          : t.rooster[verdict];
+    } else {
+      vText = t.verdict[verdict];
+    }
+    const curCp = curR ? -scoreToCp(curR) : scoreToCp(prevR);
+    speak(this._live, vText + ". " + this._advantageText(curCp, move.color, t));
+  }
+
+  _verdictFor(actualUci, prevR, curR) {
+    const best = prevR && (prevR.bestmove || prevR.best);
+    if (best && best !== "(none)" && actualUci === best) return "great";
+    const prevCp = scoreToCp(prevR);
+    const curCp = curR ? -scoreToCp(curR) : prevCp;
+    const loss = prevCp - curCp;
+    if (loss <= 20) return "good";
+    if (loss <= 100) return "interesting";
+    if (loss <= 250) return "inaccuracy";
+    if (loss <= 500) return "mistake";
+    return "blunder";
+  }
+
+  // Преимущество в сотых пешки из перспективы ходящего. Цвет — сторона, которая
+  // впереди: если ходящий проигрывает (cp<0), лидер — его соперник.
+  _advantageText(cp, moverColor, t) {
+    if (Math.abs(cp) < 50) return t.equalPosition;
+    const leader = cp >= 0 ? moverColor : moverColor === "w" ? "b" : "w";
+    return t.adv[leader] + ": +" + (Math.abs(cp) / 100).toFixed(1);
   }
 
   _scoreText(r, t) {
