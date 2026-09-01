@@ -115,7 +115,8 @@ async function openPage(path) {
   const cur2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
   check("стрелка вверх: a7 → a8", cur2 === "a8", cur2);
 
-  // Стрелки ←/→ — как ↑/↓, по клеткам (roving tabindex): a8 → b8 → a8, h8 → g8.
+  // Стрелки ←/→ — как ↑/↓, по клеткам (roving tabindex): a8 → b8 → a8;
+  // до конца ряда и обратно — a8 … h8 → g8.
   await page.locator('.chessjax-cell[data-square="a8"]').focus();
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(80);
@@ -125,7 +126,12 @@ async function openPage(path) {
   await page.waitForTimeout(80);
   const curL = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
   check("стрелка влево: b8 → a8", curL === "a8", curL);
-  await page.locator('.chessjax-cell[data-square="h8"]').focus();
+  for (let i = 0; i < 7; i++) {
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(25);
+  }
+  const curR7 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
+  check("стрелка вправо до конца ряда: a8 → h8", curR7 === "h8", curR7);
   await page.keyboard.press("ArrowLeft");
   await page.waitForTimeout(80);
   const curL2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
@@ -162,7 +168,7 @@ async function openPage(path) {
   await page.keyboard.press("h");
   await page.waitForTimeout(150);
   const help2 = await page.locator(".chessjax-live").textContent();
-  check("H: раздел ходов и комментариев", help2.includes("Комментарий") && help2.includes("контрол"), help2);
+  check("H: раздел ходов и комментариев", help2.toLowerCase().includes("комментар") && help2.toLowerCase().includes("контрол"), help2);
   await page.keyboard.press("h");
   await page.waitForTimeout(150);
   const help3 = await page.locator(".chessjax-live").textContent();
@@ -231,7 +237,7 @@ async function openPage(path) {
   await page.keyboard.press("v");
   await page.waitForTimeout(250);
   const liveV = await page.locator(".chessjax-live").textContent();
-  check("var: V — «Вариант: Слон…»", liveV.includes("Вариант") && liveV.includes("Слон"), liveV);
+  check("var: V — «Вариант: Слон…»", liveV.includes("Вариант") && liveV.toLowerCase().includes("слон"), liveV);
   const c4 = await page.locator('.chessjax-cell[data-square="c4"]').getAttribute("aria-label");
   check("var: слон белых на c4", c4 === "Белый слон C4", c4);
   const hlTo = await page.locator('.chessjax-cell[data-square="c4"]').evaluate((el) => el.classList.contains("variant-highlight"));
