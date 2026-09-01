@@ -38,6 +38,13 @@ const I18N = {
     play: "Показать ходы по порядку",
     stop: "Остановить показ ходов",
     restart: "В начало",
+    intro: "Шахматная доска. Для взаимодействия включите режим редактирования NVDA или режим форм JAWS. Клавиша H — инструкция по управлению.",
+    help: [
+      "Навигация. Стрелки вверх и вниз — перейти на соседнюю клетку. Стрелки влево и вправо — предыдущий и следующий ход. На клетке с фигурой вы услышите фигуру и координаты.",
+      "Воспроизведение. Пробел — автоматический просмотр ходов с начала партии. Контрол и пробел — продолжить с текущего хода, повторное нажатие — пауза.",
+      "Кнопки и эта справка. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
+    ],
+    helpEnd: "Инструкция закрыта.",
     by: { w: "Белые", b: "Чёрные" },
     takes: "бьёт",
     castleShort: "короткая рокировка",
@@ -66,6 +73,13 @@ const I18N = {
     play: "Play through moves",
     stop: "Stop playing moves",
     restart: "Back to start",
+    intro: "Chessboard. To interact, switch NVDA to focus mode or JAWS to forms mode. Press H for usage instructions.",
+    help: [
+      "Navigation. Arrow up and down move to the neighbouring square. Arrow left and right step to the previous and next move. On a square you hear the piece and its coordinates.",
+      "Playback. Space starts automatic playthrough from the beginning of the game. Control plus space continues from the current move; pressing again pauses.",
+      "Buttons and this help. Below the board: restart, previous move, play, next move. Press H for the next help section; after the last one it closes.",
+    ],
+    helpEnd: "Help closed.",
     by: { w: "White", b: "Black" },
     takes: "takes",
     castleShort: "short castling",
@@ -94,6 +108,13 @@ const I18N = {
     play: "Züge nacheinander",
     stop: "Anzeige stoppen",
     restart: "Zum Anfang",
+    intro: "Schachbrett. Zum Bedienen NVDA in den Fokusmodus oder JAWS in den Formularmodus schalten. Taste H — Bedienungsanleitung.",
+    help: [
+      "Navigation. Pfeil hoch und runter — benachbarte Felder. Pfeil links und rechts — vorheriger und nächster Zug. Auf einem Feld hören Sie die Figur und die Koordinaten.",
+      "Wiedergabe. Leertaste — automatisches Abspielen der Züge von Anfang an. Strg und Leertaste — vom aktuellen Zug weiter; erneut drücken — Pause.",
+      "Tasten und diese Hilfe. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
+    ],
+    helpEnd: "Hilfe geschlossen.",
     by: { w: "Weiß", b: "Schwarz" },
     takes: "schlägt",
     castleShort: "kurze Rochade",
@@ -122,6 +143,13 @@ const I18N = {
     play: "Hamleleri sırayla göster",
     stop: "Gösterimi durdur",
     restart: "Başa dön",
+    intro: "Satranç tahtası. Etkileşim için NVDA'da odak moduna veya JAWS'ta form moduna geçin. Kullanım talimatları için H tuşu.",
+    help: [
+      "Gezinme. Yukarı ve aşağı oklar — komşu kareye geçer. Sol ve sağ oklar — önceki ve sonraki hamle. Taş olan karede taşı ve koordinatları duyarsınız.",
+      "Oynatma. Boşluk — hamleleri baştan otomatik oynatır. Kontrol ve boşluk — mevcut hamleden devam eder; tekrar basın — duraklatır.",
+      "Düğmeler ve bu yardım. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
+    ],
+    helpEnd: "Yardım kapatıldı.",
     by: { w: "Beyaz", b: "Siyah" },
     takes: "alır",
     castleShort: "kısa rok",
@@ -316,10 +344,14 @@ const GLYPH = {
 
 function moveSpeech(move, lang) {
   const t = I18N[lang] || I18N.ru;
-  if (move.flags.includes("k")) return t.castleShort;
-  if (move.flags.includes("q")) return t.castleLong;
-  let s = move.from + "-" + move.to;
-  if (move.captured) s = move.from + " " + t.takes + " " + move.to;
+  // Рокировка — цвет того, кто рокирует: «Белые, короткая рокировка».
+  if (move.flags.includes("k")) return t.by[move.color] + ", " + t.castleShort;
+  if (move.flags.includes("q")) return t.by[move.color] + ", " + t.castleLong;
+  // Фигура и цвет всегда называются: «белая пешка e2-e4», «чёрный конь c3 бьёт b5».
+  const fig = pieceLabel({ piece: move.piece, color: move.color }, lang);
+  let s = move.captured
+    ? fig + " " + move.from + " " + t.takes + " " + move.to
+    : fig + " " + move.from + "-" + move.to;
   if (move.promotion) s += ", " + t.promotes + " " + t.pieces[move.promotion];
   if (move.san.includes("#")) s += ", " + t.checkmate;
   else if (move.san.includes("+")) s += ", " + t.check;
@@ -398,6 +430,7 @@ class ChessboardElement extends HTMLElement {
     this._positions = null;
     this._idx = 0;
     this._timer = null;
+    this._helpIdx = 0; // 0 = справка закрыта; 1..N = открыт раздел
     this._activeSquare = "a8"; // roving tabindex: клетка, с которой начинают навигацию стрелками
     this._root = this.attachShadow ? null : this; // Shadow DOM отключён: таблица должна оставаться в светлом DOM для скринридеров.
   }
@@ -459,7 +492,20 @@ class ChessboardElement extends HTMLElement {
     this._live.setAttribute("aria-live", "assertive");
     wrap.appendChild(this._live);
 
+    // Справка по клавишам: видимая для зрячих, для скринридера озвучивается
+    // через _live. Открывается/листается клавишей H.
+    this._help = document.createElement("p");
+    this._help.className = "chessjax-help";
+    this._help.setAttribute("role", "note");
+    this._help.hidden = true;
+    wrap.appendChild(this._help);
+
     this.appendChild(wrap);
+
+    // Клавиши навешиваем один раз на постоянный контейнер — при перерисовке
+    // доски (replaceChildren) слушатель на самом _tableWrap сохраняется.
+    this._tableWrap.addEventListener("keydown", (e) => this._onBoardKeydown(e));
+    this._tableWrap.addEventListener("focusin", (e) => this._onFocusIn(e));
   }
 
   async _load() {
@@ -522,7 +568,6 @@ class ChessboardElement extends HTMLElement {
     const hadCellFocus = !!(activeEl && activeEl.closest && activeEl.closest(".chessjax-cell") && this._tableWrap.contains(activeEl));
     const grid = renderGrid(parsed, lang, { activeSquare: this._activeSquare });
     this._tableWrap.replaceChildren(grid);
-    grid.addEventListener("keydown", (e) => this._onBoardKeydown(e));
     // Фокус был на клетке — восстанавливаем на той же координате после перерисовки.
     if (hadCellFocus) {
       const cell = grid.querySelector(`[data-square="${this._activeSquare}"]`);
@@ -534,28 +579,89 @@ class ChessboardElement extends HTMLElement {
     if (announce) {
       if (this._idx === 0) speak(this._live, I18N[lang].start);
       else {
-        const color = this._positions[this._idx].move.color;
+        // «Ход N» одинаков для пары полуходов (белые+чёрные): номер меняется
+        // только с новым ходом. Цвет и фигура — в самом описании хода.
         const text = I18N[lang].move + " " + Math.ceil(this._idx / 2) + ": " +
-          I18N[lang].by[color] + " — " + moveSpeech(this._positions[this._idx].move, lang);
+          moveSpeech(this._positions[this._idx].move, lang);
         speak(this._live, text);
       }
     }
   }
 
-  // Стрелки ходят по клеткам доски. Озвучку каждой клетки скринридер читает
-  // из aria-label при приходе фокуса (roving tabindex) — отдельный speak не нужен.
+  // Клавиши доски (фокус на клетке, NVDA в режиме форм):
+  //   ↑/↓ — по клеткам; ←/→ — перемотка ходов (озвучка + звук);
+  //   Пробел — автопросмотр с начала; Ctrl+Пробел — с текущего хода / пауза;
+  //   H — справка по разделам.
   _onBoardKeydown(e) {
-    const dirs = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
-    const d = dirs[e.key];
-    if (!d) return;
-    e.preventDefault();
-    const rankIdx = RANKS.indexOf(this._activeSquare[1]);
-    const fileIdx = FILES.indexOf(this._activeSquare[0]);
-    const nr = rankIdx + d[0];
-    const nf = fileIdx + d[1];
-    if (nr < 0 || nr > 7 || nf < 0 || nf > 7) return;
-    this._activeSquare = FILES[nf] + RANKS[nr];
-    this._applyActiveTabindex();
+    const key = e.key;
+    if (key === "ArrowUp" || key === "ArrowDown") {
+      e.preventDefault();
+      const dir = key === "ArrowUp" ? -1 : 1;
+      const rankIdx = RANKS.indexOf(this._activeSquare[1]);
+      const fileIdx = FILES.indexOf(this._activeSquare[0]);
+      const nr = rankIdx + dir;
+      if (nr < 0 || nr > 7) return;
+      this._activeSquare = FILES[fileIdx] + RANKS[nr];
+      this._applyActiveTabindex();
+      return;
+    }
+    if (key === "ArrowLeft" || key === "ArrowRight") {
+      e.preventDefault();
+      if (key === "ArrowLeft") this.prev();
+      else this.next();
+      return;
+    }
+    if (key === " " && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      this.playFromStart();
+      return;
+    }
+    if (key === " " && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      this.togglePlay();
+      return;
+    }
+    if (key === "h" || key === "H") {
+      e.preventDefault();
+      this.toggleHelp();
+    }
+  }
+
+  // Автопросмотр с начала партии: сбрасываем позицию и запускаем показ.
+  playFromStart() {
+    if (this._timer) {
+      clearInterval(this._timer);
+      this._timer = null;
+    }
+    this._idx = 0;
+    this._show({ announce: true }); // сразу «Начальная позиция», дальше тики озвучивают ходы
+    this.togglePlay();
+  }
+
+  // H листает разделы справки по кругу: 1 → 2 → 3 → закрыть → 1…
+  toggleHelp() {
+    const t = I18N[this.lang] || I18N.ru;
+    const sections = t.help || [];
+    if (this._helpIdx === 0) this._helpIdx = 1;
+    else if (this._helpIdx < sections.length) this._helpIdx += 1;
+    else this._helpIdx = 0;
+    if (this._helpIdx === 0) {
+      this._help.hidden = true;
+      speak(this._live, t.helpEnd);
+      return;
+    }
+    const text = sections[this._helpIdx - 1];
+    this._help.textContent = text;
+    this._help.hidden = false;
+    speak(this._live, text);
+  }
+
+  // Овервью — при входе фокуса на доску снаружи (не при переходе между клетками).
+  _onFocusIn(e) {
+    const rt = e.relatedTarget;
+    if (rt && rt.closest && this._tableWrap.contains(rt)) return;
+    const t = I18N[this.lang] || I18N.ru;
+    speak(this._live, t.intro);
   }
 
   _applyActiveTabindex() {

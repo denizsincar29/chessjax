@@ -97,34 +97,72 @@ async function openPage(path) {
   const summary = await page.locator(".chessjax-summary").textContent();
   check("story: после 10-го хода ход чёрных", summary.includes("Ход чёрных"), summary);
 
-  // Навигация по клеткам стрелками (roving tabindex): a8 → b8 → b7 → a7.
+  // Овервью по входу фокуса: «Шахматная доска. …» (клавиши, режим форм).
   await page.locator('.chessjax-cell[data-square="a8"]').focus();
-  await page.keyboard.press("ArrowRight");
-  await page.waitForTimeout(50);
-  const cur1 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("стрелка вправо: a8 → b8", cur1 === "b8", cur1);
-  const b8 = await page.locator('.chessjax-cell[data-square="b8"]').getAttribute("aria-label");
-  check("b8 озвучен (Чёрный конь B8)", b8 === "Чёрный конь B8", b8);
+  await page.waitForTimeout(200);
+  const intro = await page.locator(".chessjax-live").textContent();
+  check("intro по фокусу: Шахматная доска", intro.includes("Шахматная доска"), intro);
+
+  // Стрелки ↑/↓ — по клеткам (roving tabindex): a8 → a7 → a8.
   await page.keyboard.press("ArrowDown");
-  await page.waitForTimeout(50);
-  const cur2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("стрелка вниз: b8 → b7", cur2 === "b7", cur2);
-  // После 9...b5 на b7 пусто — озвучка просто координатой.
-  const b7 = await page.locator('.chessjax-cell[data-square="b7"]').getAttribute("aria-label");
-  check("b7 (пустая) озвучен как B7", b7 === "B7", b7);
-  await page.keyboard.press("ArrowLeft");
-  await page.waitForTimeout(50);
-  const cur3 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("стрелка влево: b7 → a7", cur3 === "a7", cur3);
+  await page.waitForTimeout(80);
+  const cur1 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
+  check("стрелка вниз: a8 → a7", cur1 === "a7", cur1);
   const a7 = await page.locator('.chessjax-cell[data-square="a7"]').getAttribute("aria-label");
   check("a7 озвучен (Чёрная пешка A7)", a7 === "Чёрная пешка A7", a7);
+  await page.keyboard.press("ArrowUp");
+  await page.waitForTimeout(80);
+  const cur2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
+  check("стрелка вверх: a7 → a8", cur2 === "a8", cur2);
 
-  // Фокус остаётся на той же клетке после смены хода: программный клик по кнопке
-  // (не мышью) не уводит фокус, перерисовка восстанавливает его на активной клетке.
-  await page.evaluate(() => document.querySelector('.chessjax-btn[aria-label="Предыдущий ход"]').click());
+  // Стрелки ←/→ — перемотка ходов с озвучкой фигуры. Доска на 10-м ходу белых
+  // (10.Nxb5); вправо → 10...cxb5 (чёрные), влево → снова белые.
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(250);
+  const liveR = await page.locator(".chessjax-live").textContent();
+  check("стрелка вправо: ход 10, чёрные (взятие с фигурой)", liveR.includes("10") && liveR.includes("чёрная"), liveR);
+  await page.keyboard.press("ArrowLeft");
+  await page.waitForTimeout(250);
+  const liveL = await page.locator(".chessjax-live").textContent();
+  check("стрелка влево: ход 10, белые", liveL.includes("10") && liveL.includes("белый"), liveL);
+  check("стрелка влево: названа фигура (конь)", liveL.includes("конь"), liveL);
+
+  // Фокус остаётся на той же клетке после смены хода стрелкой.
+  await page.keyboard.press("ArrowDown"); // a8 → a7
+  await page.waitForTimeout(80);
+  await page.keyboard.press("ArrowRight"); // смена хода, фокус должен вернуться на a7
   await page.waitForTimeout(250);
   const still = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("фокус восстановлен на a7 после смены хода", still === "a7", still);
+  check("фокус восстановлен на a7 после смены хода стрелкой", still === "a7", still);
+
+  // Справка по H: разделы листаются по кругу, после последнего — закрытие.
+  await page.locator('.chessjax-cell[data-square="a7"]').focus();
+  await page.waitForTimeout(150);
+  await page.keyboard.press("h");
+  await page.waitForTimeout(150);
+  const help1 = await page.locator(".chessjax-live").textContent();
+  const helpOpen = await page.locator(".chessjax-help").isVisible().catch(() => false);
+  check("H: открыта справка (раздел навигации)", helpOpen && help1.includes("Навигация"), help1);
+  await page.keyboard.press("h");
+  await page.waitForTimeout(150);
+  const help2 = await page.locator(".chessjax-live").textContent();
+  check("H: раздел воспроизведения", help2.includes("Пробел"), help2);
+  await page.keyboard.press("h");
+  await page.keyboard.press("h");
+  await page.waitForTimeout(150);
+  const helpClosed = await page.locator(".chessjax-help").isVisible().catch(() => false);
+  const helpEnd = await page.locator(".chessjax-live").textContent();
+  check("H: после разделов справка закрыта", !helpClosed && helpEnd.includes("закрыта"), helpEnd);
+
+  // Пробел — автопросмотр с начала (тик через 2.5 с озвучивает 1.e4).
+  await page.locator('.chessjax-cell[data-square="a7"]').focus();
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(300);
+  const spaceStart = await page.locator(".chessjax-live").textContent();
+  check("Пробел: «Начальная позиция»", spaceStart.includes("Начальная позиция"), spaceStart);
+  await page.waitForTimeout(2800);
+  const spaceMove = await page.locator(".chessjax-live").textContent();
+  check("Пробел: тик озвучил 1.e4 с фигурой", spaceMove.includes("пешка") && spaceMove.includes("e2-e4"), spaceMove);
 
   // Кнопка текста move=17 → доска показывает мат: ладья белых на d8, озвучка «мат».
   await page.locator('button[chess="morphy"][move="17"]').click();

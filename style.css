@@ -137,6 +137,15 @@ button:hover, button:focus-visible {
   padding: 0.5rem 0.7rem;
 }
 
+.chessjax-help {
+  margin: 0.5rem 0 0;
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+  max-width: 560px;
+  border-inline-start: 3px solid var(--accent);
+  padding: 0.25rem 0.6rem;
+}
+
 .lang-switch {
   display: flex;
   align-items: center;
