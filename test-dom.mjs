@@ -69,6 +69,26 @@ async function openPage(path) {
   const summary = await page.locator(".chessjax-summary").textContent();
   check("демо: summary «Ход белых»", summary.includes("Ход белых"), summary);
 
+  // Fullscreen: клавиша F включает режим на весь экран, эскейп — выключает.
+  await page.locator('.chessjax-cell[data-square="a8"]').focus();
+  await page.keyboard.press("f");
+  await page.waitForTimeout(400);
+  const fsOn = await page.evaluate(() => {
+    const board = document.querySelector("chessjax-board");
+    return { el: !!document.fullscreenElement, match: board ? board.matches(":fullscreen") : false };
+  });
+  check("fullscreen: F включает режим", fsOn.el && fsOn.match, JSON.stringify(fsOn));
+  const liveFs = await page.locator(".chessjax-live").textContent();
+  check("fullscreen: озвучка «Полноэкранный режим»", liveFs.includes("Полноэкранный"), liveFs);
+  const fsBtn = await page.locator('.chessjax-btn[aria-label="Выйти из полноэкранного режима"]').count();
+  check("fullscreen: кнопка ⛶ стала «Выйти из…»", fsBtn === 1, "fsBtn=" + fsBtn);
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(400);
+  const fsOff = await page.evaluate(() => document.fullscreenElement);
+  check("fullscreen: эскейп выключает режим", fsOff === null, "fullscreenElement=" + fsOff);
+  const liveFsOff = await page.locator(".chessjax-live").textContent();
+  check("fullscreen: озвучка выключения", liveFsOff.includes("выключен"), liveFsOff);
+
   // Смена языка через select.
   await page.selectOption("#lang", "en");
   await page.waitForTimeout(200);

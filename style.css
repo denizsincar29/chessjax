@@ -162,3 +162,47 @@ button:hover, button:focus-visible {
   border-radius: 6px;
   padding: 0.4rem 0.6rem;
 }
+
+/* Полноэкранный режим (клавиша F или кнопка ⛶ под доской): доска
+   растягивается на весь экран и центрируется, фигуры увеличиваются. */
+chessjax-board:fullscreen {
+  background: var(--bg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+chessjax-board:fullscreen .chessjax-board {
+  width: min(86vh, 92vw);
+  margin: 0 auto;
+  grid-template-columns: repeat(8, 1fr);
+  border-width: 2px;
+}
+
+chessjax-board:fullscreen .chessjax-cell {
+  width: auto;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  font-size: min(6vh, 6vw);
+}
+
+chessjax-board:fullscreen .chessjax-summary,
+chessjax-board:fullscreen .chessjax-live,
+chessjax-board:fullscreen .chessjax-help {
+  max-width: min(86vh, 92vw);
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+chessjax-board:fullscreen .chessjax-controls {
+  justify-content: center;
+}
+
+chessjax-board:fullscreen .chessjax-btn {
+  min-width: 56px;
+  min-height: 48px;
+  font-size: 1.4rem;
+}

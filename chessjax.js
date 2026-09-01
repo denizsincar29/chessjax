@@ -38,12 +38,16 @@ const I18N = {
     play: "Показать ходы по порядку",
     stop: "Остановить показ ходов",
     restart: "В начало",
+    fullscreen: "Во весь экран",
+    exitFullscreen: "Выйти из полноэкранного режима",
+    fullscreenOn: "Полноэкранный режим",
+    fullscreenOff: "Полноэкранный режим выключен",
     intro: "Шахматная доска. Для взаимодействия включите режим редактирования NVDA или режим форм JAWS. Клавиша H — инструкция по управлению.",
     help: [
       "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты.",
       "Ходы и комментарии. Контрол и стрелки влево и вправо — предыдущий и следующий ход. Ход озвучивается фигурой и координатами, после него читается комментарий из записи партии.",
       "Воспроизведение. Пробел — автоматический просмотр ходов с начала партии. Контрол и пробел — продолжить с текущего хода, повторное нажатие — пауза.",
-      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
+      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
     ],
     helpEnd: "Инструкция закрыта.",
     commentLabel: "Комментарий",
@@ -80,12 +84,16 @@ const I18N = {
     play: "Play through moves",
     stop: "Stop playing moves",
     restart: "Back to start",
+    fullscreen: "Fullscreen",
+    exitFullscreen: "Exit fullscreen",
+    fullscreenOn: "Fullscreen mode",
+    fullscreenOff: "Fullscreen mode off",
     intro: "Chessboard. To interact, switch NVDA to focus mode or JAWS to forms mode. Press H for usage instructions.",
     help: [
       "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates.",
       "Moves and comments. Control plus arrow left and right step to the previous and next move. Each move is announced with the piece and squares, followed by the comment from the game record.",
       "Playback. Space starts automatic playthrough from the beginning of the game. Control plus space continues from the current move; pressing again pauses.",
-      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move. Press H for the next help section; after the last one it closes.",
+      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen. Press F for fullscreen, press again or escape to exit. Press H for the next help section; after the last one it closes.",
     ],
     helpEnd: "Help closed.",
     commentLabel: "Comment",
@@ -122,12 +130,16 @@ const I18N = {
     play: "Züge nacheinander",
     stop: "Anzeige stoppen",
     restart: "Zum Anfang",
+    fullscreen: "Vollbild",
+    exitFullscreen: "Vollbild beenden",
+    fullscreenOn: "Vollbildmodus",
+    fullscreenOff: "Vollbildmodus aus",
     intro: "Schachbrett. Zum Bedienen NVDA in den Fokusmodus oder JAWS in den Formularmodus schalten. Taste H — Bedienungsanleitung.",
     help: [
       "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten.",
       "Züge und Kommentare. Strg plus Pfeil links und rechts — vorheriger und nächster Zug. Der Zug wird mit Figur und Feldern angesagt, danach der Kommentar aus der Partie.",
       "Wiedergabe. Leertaste — automatisches Abspielen der Züge von Anfang an. Strg und Leertaste — vom aktuellen Zug weiter; erneut drücken — Pause.",
-      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
+      "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
     ],
     helpEnd: "Hilfe geschlossen.",
     commentLabel: "Kommentar",
@@ -164,12 +176,16 @@ const I18N = {
     play: "Hamleleri sırayla göster",
     stop: "Gösterimi durdur",
     restart: "Başa dön",
+    fullscreen: "Tam ekran",
+    exitFullscreen: "Tam ekrandan çık",
+    fullscreenOn: "Tam ekran modu",
+    fullscreenOff: "Tam ekran modu kapalı",
     intro: "Satranç tahtası. Etkileşim için NVDA'da odak moduna veya JAWS'ta form moduna geçin. Kullanım talimatları için H tuşu.",
     help: [
       "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız.",
       "Hamleler ve yorumlar. Kontrol ve sol/sağ oklar — önceki ve sonraki hamle. Hamle taş ve karelerle okunur, ardından kayıttaki yorum söylenir.",
       "Oynatma. Boşluk — hamleleri baştan otomatik oynatır. Kontrol ve boşluk — mevcut hamleden devam eder; tekrar basın — duraklatır.",
-      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
+      "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
     ],
     helpEnd: "Yardım kapatıldı.",
     commentLabel: "Yorum",
@@ -534,6 +550,7 @@ class ChessboardElement extends HTMLElement {
     this._helpIdx = 0; // 0 = справка закрыта; 1..N = открыт раздел
     this._variant = null; // режим варианта: {positions, idx} альтернативной линии
     this._activeSquare = "a8"; // roving tabindex: клетка, с которой начинают навигацию стрелками
+    this._wasFull = false; // прошлое состояние fullscreen — чтобы озвучивать только реальные переходы
     this._root = this.attachShadow ? null : this; // Shadow DOM отключён: таблица должна оставаться в светлом DOM для скринридеров.
   }
 
@@ -547,11 +564,14 @@ class ChessboardElement extends HTMLElement {
     this._renderShell();
     this._initialized = true;
     this._load();
+    this._onFsChange = () => this._updateFullButton();
+    document.addEventListener("fullscreenchange", this._onFsChange);
   }
 
   disconnectedCallback() {
     registeredBoards.delete(this);
     if (this._timer) clearInterval(this._timer);
+    if (this._onFsChange) document.removeEventListener("fullscreenchange", this._onFsChange);
   }
 
   attributeChangedCallback(name, _old, value) {
@@ -586,7 +606,8 @@ class ChessboardElement extends HTMLElement {
     this._btnPrev = mkButton(t.prev, "←", () => { unlockAudio(); this.prev(); });
     this._btnPlay = mkButton(t.play, "▶", () => { unlockAudio(); this.togglePlay(); });
     this._btnNext = mkButton(t.next, "→", () => { unlockAudio(); this.next(); });
-    controls.append(this._btnRestart, this._btnPrev, this._btnPlay, this._btnNext);
+    this._btnFull = mkButton(t.fullscreen, "⛶", () => { unlockAudio(); this.toggleFullscreen(); });
+    controls.append(this._btnRestart, this._btnPrev, this._btnPlay, this._btnNext, this._btnFull);
     wrap.appendChild(controls);
 
     this._live = document.createElement("p");
@@ -765,6 +786,35 @@ class ChessboardElement extends HTMLElement {
     if (key === "h" || key === "H") {
       e.preventDefault();
       this.toggleHelp();
+      return;
+    }
+    if (key === "f" || key === "F") {
+      e.preventDefault();
+      this.toggleFullscreen();
+    }
+  }
+
+  // Полноэкранный режим: клавиша F или кнопка ⛶ под доской. Внутренний esc
+  // браузера выходит из fullscreen сам; кнопка и F — только включают/выключают.
+  toggleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else if (this._root && this._root.requestFullscreen) {
+      this._root.requestFullscreen().catch(() => {});
+    } else {
+      speak(this._live, I18N[this.lang].fullscreenOff);
+    }
+  }
+
+  // После изменения fullscreen (событие на документе) обновляем подпись кнопки
+  // и озвучиваем переход. Озвучка — только при реальной смене состояния.
+  _updateFullButton() {
+    const t = I18N[this.lang] || I18N.ru;
+    const isFull = document.fullscreenElement === this._root;
+    this._btnFull.setAttribute("aria-label", isFull ? t.exitFullscreen : t.fullscreen);
+    if (isFull !== this._wasFull) {
+      this._wasFull = isFull;
+      speak(this._live, isFull ? t.fullscreenOn : t.fullscreenOff);
     }
   }
 
