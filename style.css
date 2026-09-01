@@ -179,16 +179,17 @@ chessjax-board:fullscreen {
 
 chessjax-board:fullscreen .chessjax-board {
   width: min(72vh, 92vw);
+  height: min(72vh, 92vw);
   margin: 0 auto;
   grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
   border-width: 2px;
 }
 
 chessjax-board:fullscreen .chessjax-cell {
-  width: auto;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  font-size: min(6vh, 6vw);
+  width: 100%;
+  height: 100%;
+  font-size: min(5vh, 5vw);
 }
 
 chessjax-board:fullscreen .chessjax-summary,
