@@ -119,6 +119,49 @@ async function openPage(path) {
   const summary = await page.locator(".chessjax-summary").textContent();
   check("story: после 10-го хода ход чёрных", summary.includes("Ход чёрных"), summary);
 
+  // Анонс перед доской: невидимая область, которую скринридер читает при
+  // листании документа, — «Шахматная доска, область» и подсказка про Enter.
+  const introEl = page.locator("chessjax-board .chessjax-board-intro");
+  check("анонс: элемент перед доской есть", (await introEl.count()) === 1);
+  const introInfo = await page.evaluate(() => {
+    const board = document.querySelector("chessjax-board");
+    const el = board.querySelector(".chessjax-board-intro");
+    const grid = board.querySelector(".chessjax-board");
+    return {
+      role: el.getAttribute("role"),
+      tabindex: el.getAttribute("tabindex"),
+      label: el.getAttribute("aria-label"),
+      before: el.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING ? true : false,
+      width: el.getBoundingClientRect().width,
+    };
+  });
+  check("анонс: роль «область»", introInfo.role === "region", introInfo.role);
+  check("анонс: доступен с клавиатуры", introInfo.tabindex === "0", String(introInfo.tabindex));
+  check("анонс: назван и подсказывает Enter",
+    /Шахматная доска/.test(introInfo.label || "") && /Enter/.test(introInfo.label || ""), introInfo.label);
+  check("анонс: стоит перед сеткой", introInfo.before);
+  check("анонс: скрыт визуально", introInfo.width <= 1, String(introInfo.width));
+
+  // Enter на анонсе — фокус в доску, на активную клетку.
+  await introEl.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(200);
+  const afterEnter = await page.evaluate(() => {
+    const a = document.activeElement;
+    return { cls: a.className, square: a.getAttribute("data-square") };
+  });
+  check("Enter на анонсе ставит фокус в клетку", /chessjax-cell/.test(afterEnter.cls || ""), JSON.stringify(afterEnter));
+
+  // Клик по клетке — тоже вход в доску: фокус встаёт на неё. Кликаем по a8:
+  // дальше идут проверки стрелок, которые считают клетку a8 активной.
+  await page.locator('.chessjax-cell[data-square="a8"]').click();
+  await page.waitForTimeout(200);
+  const afterClick = await page.evaluate(() => {
+    const a = document.activeElement;
+    return { square: a.getAttribute("data-square"), tabindex: a.getAttribute("tabindex") };
+  });
+  check("клик по клетке ставит фокус и tabindex", afterClick.square === "a8" && afterClick.tabindex === "0", JSON.stringify(afterClick));
+
   // Овервью по входу фокуса: «Шахматная доска. …» (клавиши, режим форм).
   await page.locator('.chessjax-cell[data-square="a8"]').focus();
   await page.waitForTimeout(200);

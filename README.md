@@ -15,7 +15,7 @@ Local:
 Or from CDN (pinned to a tag):
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.6.1/chessjax.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.6.3/chessjax.js"></script>
 ```
 
 ## Usage
@@ -70,9 +70,13 @@ The board is a div grid with a roving tabindex — one square in focus
 - **H** — help: opens section by section (navigation, moves and comments,
   auto-play, variations, analysis); press again to page through.
 
-On focus, NVDA/JAWS hear an introduction: "Chess board. To interact, enable
-NVDA's focus mode or JAWS forms mode. Press H for help." All help text is
-localized (ru/en/de/tr).
+Before the board sits an invisible region that screen readers read while
+browsing with the arrow keys: "Chessboard, region. Press Enter to interact
+with the board." Pressing Enter (or Space, or clicking the board) moves focus
+onto a square and turns on NVDA's focus mode / JAWS forms mode — no need to
+switch modes by hand. On focus you then hear the introduction: "Chess board.
+To interact, enable NVDA's focus mode or JAWS forms mode. Press H for help."
+All help text is localized (ru/en/de/tr).
 
 ## Comments and variations
 

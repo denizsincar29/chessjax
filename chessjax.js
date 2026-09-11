@@ -80,8 +80,10 @@ const I18N = {
     adv: { w: "Преимущество белых", b: "Преимущество чёрных" },
     equalPosition: "Позиция равная",
     intro: "Шахматная доска. Для взаимодействия включите режим редактирования NVDA или режим форм JAWS. Клавиша H — инструкция по управлению.",
+    // Анонс перед доской: его читает скринридер, листая документ стрелками.
+    boardIntro: "Шахматная доска, область. Нажмите Enter, чтобы взаимодействовать с доской.",
     help: [
-      "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты.",
+      "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты. Если доска ещё не слушает клавиши, нажмите Enter на её анонсе или щёлкните по доске — фокус встанет на клетку.",
       "Ходы и комментарии. Контрол и стрелки влево и вправо — предыдущий и следующий ход. Ход озвучивается фигурой и координатами, после него читается комментарий из записи партии.",
       "Воспроизведение. Пробел — продолжить с текущего хода или пауза с объявлением номера хода. Контрол и пробел — автоматический просмотр с начала партии. Контрол и стрелки вверх и вниз — быстрее и медленнее.",
       "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, лучший ход, анализ партии. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша B — лучший ход в текущей позиции: оценка и ход движка. Клавиша A — анализ партии: каждый ход с вердиктом, величина преимущества маркируется тоном, повторное нажатие — выключить. Удерживайте A две секунды — скрытый режим роаста с неформальными вердиктами. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
@@ -162,8 +164,9 @@ const I18N = {
     adv: { w: "White advantage", b: "Black advantage" },
     equalPosition: "Equal position",
     intro: "Chessboard. To interact, switch NVDA to focus mode or JAWS to forms mode. Press H for usage instructions.",
+    boardIntro: "Chessboard, region. Press Enter to interact with the board.",
     help: [
-      "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates.",
+      "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates. If the board does not take keys yet, press Enter on its announcement or click the board — the focus lands on a square.",
       "Moves and comments. Control plus arrow left and right step to the previous and next move. Each move is announced with the piece and squares, followed by the comment from the game record.",
       "Playback. Space continues from the current move or pauses and announces the move number. Control plus space starts automatic playthrough from the beginning of the game. Control plus arrow up and down makes playback faster and slower.",
       "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, best move, game analysis. Press F for fullscreen, press again or escape to exit. Press B for the best move in the current position: score and the engine's move. Press A to toggle game analysis: each move with a verdict; the advantage is signaled by a tone; press again to turn off. Hold A for two seconds to enable the hidden roast mode with informal verdicts. Press H for the next help section; after the last one it closes.",
@@ -241,8 +244,9 @@ const I18N = {
     adv: { w: "Weißer Vorteil", b: "Schwarzer Vorteil" },
     equalPosition: "Ausgeglichene Stellung",
     intro: "Schachbrett. Zum Bedienen NVDA in den Fokusmodus oder JAWS in den Formularmodus schalten. Taste H — Bedienungsanleitung.",
+    boardIntro: "Schachbrett, Bereich. Enter drücken, um mit dem Brett zu arbeiten.",
     help: [
-      "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten.",
+      "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten. Nimmt das Brett noch keine Tasten an, Enter auf der Ankündigung drücken oder das Brett anklicken — der Fokus landet auf einem Feld.",
       "Züge und Kommentare. Strg plus Pfeil links und rechts — vorheriger und nächster Zug. Der Zug wird mit Figur und Feldern angesagt, danach der Kommentar aus der Partie.",
       "Wiedergabe. Leertaste — vom aktuellen Zug weiter oder Pause mit Angabe der Zugnummer. Strg und Leertaste — automatisches Abspielen von Anfang an. Strg und Pfeil hoch und runter — schneller und langsamer.",
       "Varianten und diese Hilfe. Hat ein Zug alternative Züge in Dollar-Klammern — Taste V spielt sie ab, erneut drücken springt zum Variantenende, Escape führt zur Partie zurück. Unter dem Brett: zum Anfang, vorheriger Zug, Abspielen, nächster Zug, Vollbild, bester Zug, Partieanalyse. Taste F — Vollbild, erneut drücken oder Escape — verlassen. Taste B — bester Zug in der aktuellen Stellung: Bewertung und Engine-Zug. Taste A — Partieanalyse: jeder Zug mit Urteil, der Vorteil wird durch einen Ton markiert; erneut drücken — aus. Taste A zwei Sekunden gedrückt halten — versteckter Roast-Modus mit lockeren Urteilen. Taste H — nächster Hilfeabschnitt; nach dem letzten schließt er sich.",
@@ -320,8 +324,9 @@ const I18N = {
     adv: { w: "Beyaz avantaj", b: "Siyah avantaj" },
     equalPosition: "Konum dengede",
     intro: "Satranç tahtası. Etkileşim için NVDA'da odak moduna veya JAWS'ta form moduna geçin. Kullanım talimatları için H tuşu.",
+    boardIntro: "Satranç tahtası, bölge. Tahtayla etkileşim için Enter'a basın.",
     help: [
-      "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız.",
+      "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız. Tahta henüz tuşları almıyorsa, duyurusunda Enter'a basın veya tahtaya tıklayın — odak bir kareye gelir.",
       "Hamleler ve yorumlar. Kontrol ve sol/sağ oklar — önceki ve sonraki hamle. Hamle taş ve karelerle okunur, ardından kayıttaki yorum söylenir.",
       "Oynatma. Boşluk — mevcut hamleden devam eder veya hamle numarasıyla duraklatır. Kontrol ve boşluk — baştan otomatik oynatır. Kontrol ve yukarı/aşağı oklar — hızlandırır ve yavaşlatır.",
       "Varyantlar ve bu yardım. Hamlede dolar köşeli parantez içinde alternatif hamleler varsa V tuşu oynatır, tekrar basmak varyantın sonuna atlar, Escape oyuna döner. Tahtanın altında: başa dön, önceki hamle, oynat, sonraki hamle, tam ekran, en iyi hamle, oyun analizi. F tuşu — tam ekran, tekrar basmak veya Escape — çıkış. B tuşu — mevcut pozisyondaki en iyi hamle: değerlendirme ve motor hamlesi. A tuşu — oyun analizi: her hamle için yorum, avantaj bir tonla işaretlenir; tekrar basın — kapatır. A tuşuna iki saniye basılı tutun — gayriresmî yorumlar veren gizli roast modu. H tuşu — sonraki yardım bölümü; sonuncusundan sonra kapanır.",
@@ -913,6 +918,27 @@ class ChessboardElement extends HTMLElement {
     const wrap = document.createElement("div");
     wrap.className = "chessjax";
 
+    // Анонс перед доской. Скринридер, листая документ стрелками, сперва
+    // натыкается на него: «Шахматная доска, область» и подсказка, чем доска
+    // оживает. Дальше стрелки читают уже клетки — юникод-символы фигур.
+    // Скрыт инлайновым стилем, а не классом: готовая страница mathmd вшивает
+    // не все стили chessjax, и вид элемента не должен от них зависеть.
+    this._boardIntro = document.createElement("p");
+    this._boardIntro.className = "chessjax-board-intro";
+    this._boardIntro.tabIndex = 0;
+    this._boardIntro.setAttribute("role", "region");
+    this._boardIntro.setAttribute("aria-label", t.boardIntro);
+    this._boardIntro.style.cssText =
+      "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap";
+    this._boardIntro.addEventListener("click", () => this._focusBoard());
+    this._boardIntro.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        this._focusBoard();
+      }
+    });
+    wrap.appendChild(this._boardIntro);
+
     this._tableWrap = document.createElement("div");
     this._tableWrap.className = "chessjax-board-wrap";
     wrap.appendChild(this._tableWrap);
@@ -964,6 +990,14 @@ class ChessboardElement extends HTMLElement {
     this._tableWrap.addEventListener("keydown", (e) => this._onBoardKeydown(e));
     this._tableWrap.addEventListener("keyup", (e) => this._onBoardKeyup(e));
     this._tableWrap.addEventListener("focusin", (e) => this._onFocusIn(e));
+    // Клик по клетке — тот же вход в доску, что и Enter: фокус встаёт на
+    // клетку, и скринридер переходит в режим форм.
+    this._tableWrap.addEventListener("click", (e) => {
+      const cell = e.target && e.target.closest ? e.target.closest(".chessjax-cell") : null;
+      if (!cell || !cell.dataset.square) return;
+      this._activeSquare = cell.dataset.square;
+      this._applyActiveTabindex();
+    });
   }
 
   async _load() {
@@ -1273,6 +1307,16 @@ class ChessboardElement extends HTMLElement {
     if (rt && rt.closest && this._tableWrap.contains(rt)) return;
     const t = I18N[this.lang] || I18N.ru;
     speak(this._live, t.intro);
+  }
+
+  // Вход в доску по Enter на анонсе (или клику): фокус встаёт на активную
+  // клетку. С этого момента NVDA переключается в режим форм и отдаёт стрелки
+  // доске — дальше _onBoardKeydown ведёт навигацию по клеткам.
+  _focusBoard() {
+    const cell =
+      this._tableWrap.querySelector(`[data-square="${this._activeSquare}"]`) ||
+      this._tableWrap.querySelector(".chessjax-cell");
+    if (cell) cell.focus();
   }
 
   _applyActiveTabindex() {
