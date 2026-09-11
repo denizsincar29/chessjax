@@ -204,14 +204,17 @@ async function openPage(path) {
 
   // Ctrl+←/→ — перемотка ходов с озвучкой фигуры. Доска на 10-м ходу белых
   // (10.Nxb5); вправо → 10...cxb5 (чёрные), влево → снова белые.
+  // Номер хода тут намеренно не звучит: ход озвучивается малословно, без
+  // номера (номер и цвет слышны только в паузе авто-шоу) — поэтому проверяем
+  // фигуру и поле, а не номер.
   await page.keyboard.press("Control+ArrowRight");
   await page.waitForTimeout(250);
   const liveR = await page.locator(".chessjax-live").textContent();
-  check("Ctrl+вправо: ход 10, чёрные (взятие с фигурой)", liveR.includes("10") && liveR.includes("чёрная"), liveR);
+  check("Ctrl+вправо: ход чёрных, пешка бьёт b5", liveR.includes("чёрная") && liveR.includes("b5"), liveR);
   await page.keyboard.press("Control+ArrowLeft");
   await page.waitForTimeout(250);
   const liveL = await page.locator(".chessjax-live").textContent();
-  check("Ctrl+влево: ход 10, белые", liveL.includes("10") && liveL.includes("белый"), liveL);
+  check("Ctrl+влево: ход белых, конь бьёт b5", liveL.includes("белый") && liveL.includes("b5"), liveL);
   check("Ctrl+влево: названа фигура (конь)", liveL.includes("конь"), liveL);
 
   // Фокус остаётся на той же клетке после смены хода Ctrl+стрелкой.
@@ -245,15 +248,19 @@ async function openPage(path) {
   const helpEnd = await page.locator(".chessjax-live").textContent();
   check("H: после разделов справка закрыта", !helpClosed && helpEnd.includes("закрыта"), helpEnd);
 
-  // Пробел — автопросмотр с начала (тик через 2.5 с озвучивает 1.e4).
+  // Пробел — продолжить с текущего хода (клавиши поменялись в v0.6.1:
+  // с начала партии играет Ctrl+Пробел). Тик озвучивает следующий ход —
+  // 11.Bxb5+.
   await page.locator('.chessjax-cell[data-square="a7"]').focus();
   await page.keyboard.press("Space");
-  await page.waitForTimeout(300);
-  const spaceStart = await page.locator(".chessjax-live").textContent();
-  check("Пробел: «Начальная позиция»", spaceStart.includes("Начальная позиция"), spaceStart);
-  await page.waitForTimeout(2800);
+  await page.waitForTimeout(3200);
   const spaceMove = await page.locator(".chessjax-live").textContent();
-  check("Пробел: тик озвучил 1.e4 с фигурой", spaceMove.includes("пешка") && spaceMove.includes("e2-e4"), spaceMove);
+  check("Пробел: продолжил с текущего хода (слон бьёт b5)", spaceMove.includes("слон") && spaceMove.includes("b5"), spaceMove);
+  // Второй Пробел — пауза, и только тут слышны номер хода и цвет.
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(250);
+  const spacePause = await page.locator(".chessjax-live").textContent();
+  check("Пробел: пауза с номером хода и цветом", spacePause.includes("Остановлено") && /бел|чёрн/.test(spacePause), spacePause);
 
   // Кнопка текста move=17 → доска показывает мат: ладья белых на d8, озвучка «мат».
   await page.locator('button[chess="morphy"][move="17"]').click();
@@ -261,19 +268,19 @@ async function openPage(path) {
   const d8 = await page.locator('.chessjax-cell[data-square="d8"]').getAttribute("aria-label");
   check("story: после move=17 ладья на d8", d8 === "Белая ладья D8", d8);
   const live = await page.locator(".chessjax-live").textContent();
-  check("story: озвучка мата", live.includes("мат") && live.includes("17"), live);
+  check("story: озвучен мат ладьёй на d8", live.includes("мат") && live.includes("ладья") && live.includes("d8"), live);
 
   // Кнопка текста move=16 (жертва ферзя) — озвучка «шах».
   await page.locator('button[chess="morphy"][move="16"]').click();
   await page.waitForTimeout(250);
   const live16 = await page.locator(".chessjax-live").textContent();
-  check("story: озвучка шаха на 16-м", live16.includes("16") && live16.includes("шах"), live16);
+  check("story: озвучен шах ферзём на b8", live16.includes("ферзь") && live16.includes("b8") && live16.includes("шах"), live16);
 
   // Кнопка навигации «предыдущий» работает (подпись в aria-label, не в тексте).
   await page.locator('.chessjax-btn[aria-label="Предыдущий ход"]').click();
   await page.waitForTimeout(250);
   const livePrev = await page.locator(".chessjax-live").textContent();
-  check("story: prev озвучил 15-й ход", livePrev.includes("15"), livePrev);
+  check("story: prev озвучил 15-й ход (конь бьёт d7)", livePrev.includes("конь") && livePrev.includes("d7"), livePrev);
 
   check("story: нет pageerrors", errors.length === 0, errors.join(" | "));
   await page.close();
