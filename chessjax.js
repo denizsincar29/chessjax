@@ -555,11 +555,20 @@ export function renderBoard(container, fen, opts = {}) {
 // («строка N, столбец M») и заголовки строк/колонок, что многословно. Здесь
 // каждая клетка — фокусируемый div с aria-label «Чёрная пешка B7» / пустая «E5»,
 // скринридер читает только его. Заголовки не нужны: координату несёт сама клетка.
+//
+// role="application" — не украшение, а условие работы. Доска ведёт клавиши сама
+// (стрелки ходят по клеткам), но фокусируемый div сам по себе режим форм у NVDA
+// не включает: без этой роли Enter ставил фокус на клетку, а скринридер оставался
+// в режиме чтения и стрелками уводил из доски в текст документа. Роль говорит
+// скринридеру «клавиши внутри — не твои».
 function renderGrid(parsed, lang, opts = {}) {
   const activeSquare = opts.activeSquare;
   const highlight = opts.highlight; // Set квадратов хода варианта — подсветка
+  const t = I18N[lang] || I18N.ru;
   const board = document.createElement("div");
   board.className = "chessjax-board";
+  board.setAttribute("role", "application");
+  board.setAttribute("aria-label", t.board);
 
   for (let r = 0; r < 8; r++) {
     const rank = RANKS[r];
@@ -575,7 +584,13 @@ function renderGrid(parsed, lang, opts = {}) {
       const piece = parsed.board.get(square);
       if (piece) {
         cell.classList.add("has-piece", "piece-" + piece.color);
-        cell.textContent = GLYPH[piece.color === "w" ? piece.piece.toUpperCase() : piece.piece];
+        // Юникод-фигура — только для глаз. Скринридеру её читать нечего: клетка
+        // названа aria-label'ом, а глиф он произносил бы поверх («чёрный конь»
+        // дважды либо «U+265E»). Для этого и aria-hidden.
+        const glyph = document.createElement("span");
+        glyph.setAttribute("aria-hidden", "true");
+        glyph.textContent = GLYPH[piece.color === "w" ? piece.piece.toUpperCase() : piece.piece];
+        cell.appendChild(glyph);
         // «Чёрный ферзь D5» — фигура (с родом из i18n) перед координатой.
         const label = pieceLabel(piece, lang);
         cell.setAttribute("aria-label", label.charAt(0).toUpperCase() + label.slice(1) + " " + square.toUpperCase());

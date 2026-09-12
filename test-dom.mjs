@@ -60,12 +60,39 @@ async function openPage(path) {
   check("демо: 64 клетки", cells === 64, "cells=" + cells);
   check("демо: доска не таблица (нет th)", th === 0, "th=" + th);
 
+  // Доска — приложение: клавиши внутри ведёт она сама, и скринридер обязан
+  // отдавать их ей, а не листать документ стрелками. Фокусируемого div'а для
+  // этого мало — роль и есть та самая кнопка «режим форм» у NVDA.
+  const boardRole = await page.evaluate(() => {
+    const el = document.querySelector(".chessjax-board");
+    return { role: el.getAttribute("role"), label: el.getAttribute("aria-label") };
+  });
+  check("демо: доска объявлена приложением", boardRole.role === "application", JSON.stringify(boardRole));
+  check("демо: у приложения есть имя", /доска/i.test(boardRole.label || ""), boardRole.label);
+
   const a1 = await page.locator('.chessjax-cell[data-square="a1"]').getAttribute("aria-label");
   check("демо: a1 = Белая ладья A1", a1 === "Белая ладья A1", a1);
   const d1 = await page.locator('.chessjax-cell[data-square="d1"]').getAttribute("aria-label");
   check("демо: d1 = Белый ферзь D1 (ферзь м.р.)", d1 === "Белый ферзь D1", d1);
   const e4 = await page.locator('.chessjax-cell[data-square="e4"]').getAttribute("aria-label");
   check("демо: e4 (пустая) = E4", e4 === "E4", e4);
+
+  // Фигура нарисована юникод-глифом, но скринридеру он не адресован: имя клетки
+  // берётся из aria-label, а глиф спрятан в aria-hidden-обёртку. Иначе NVDA
+  // в режиме чтения произносит фигуру поверх подписи — дважды.
+  const glyph = await page.evaluate(() => {
+    const cell = document.querySelector('.chessjax-cell[data-square="d1"]');
+    const span = cell.firstElementChild;
+    return {
+      tag: span ? span.tagName : null,
+      hidden: span ? span.getAttribute("aria-hidden") : null,
+      text: span ? span.textContent : null,
+      cellText: cell.textContent,
+    };
+  });
+  check("демо: глиф фигуры обёрнут в aria-hidden",
+    glyph.tag === "SPAN" && glyph.hidden === "true", JSON.stringify(glyph));
+  check("демо: глиф на месте (ферзь d1)", glyph.text === "♕" && glyph.cellText === "♕", JSON.stringify(glyph));
   const summary = await page.locator(".chessjax-summary").textContent();
   check("демо: summary «Ход белых»", summary.includes("Ход белых"), summary);
 
@@ -151,6 +178,14 @@ async function openPage(path) {
     return { cls: a.className, square: a.getAttribute("data-square") };
   });
   check("Enter на анонсе ставит фокус в клетку", /chessjax-cell/.test(afterEnter.cls || ""), JSON.stringify(afterEnter));
+
+  // И этот фокус — внутри области-приложения: именно туда скринридер отдаёт
+  // клавиши, поэтому стрелки после Enter ходят по клеткам, а не по тексту.
+  const insideApp = await page.evaluate(() => {
+    const app = document.querySelector(".chessjax-board");
+    return !!(app && document.activeElement && app.contains(document.activeElement));
+  });
+  check("Enter на анонсе вводит фокус внутрь приложения", insideApp);
 
   // Клик по клетке — тоже вход в доску: фокус встаёт на неё. Кликаем по a8:
   // дальше идут проверки стрелок, которые считают клетку a8 активной.
