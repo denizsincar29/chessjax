@@ -74,8 +74,8 @@ Before the board sits an invisible region that screen readers read while
 browsing with the arrow keys: "Chessboard, region. Press Enter to interact
 with the board." Pressing Enter (or Space, or clicking the board) moves focus
 onto a square and turns on NVDA's focus mode / JAWS forms mode — no need to
-switch modes by hand. On focus you then hear the introduction: "Chess board.
-To interact, enable NVDA's focus mode or JAWS forms mode. Press H for help."
+switch modes by hand. On focus you then hear the introduction: "Chessboard.
+The arrows move over the squares, press H for usage instructions."
 All help text is localized (ru/en/de/tr).
 
 ## Comments and variations

@@ -206,11 +206,16 @@ async function openPage(path) {
   });
   check("клик по клетке ставит фокус и tabindex", afterClick.square === "a8" && afterClick.tabindex === "0", JSON.stringify(afterClick));
 
-  // Овервью по входу фокуса: «Шахматная доска. …» (клавиши, режим форм).
+  // Овервью по входу фокуса: «Шахматная доска. …». Подсказка не должна звать
+  // вручную включать режим редактирования NVDA: с v0.6.5 NVDA включает его сам
+  // на фокусе, а NVDA+Space по такой подсказке вернул бы человека в режим
+  // чтения и отобрал у доски стрелки.
   await page.locator('.chessjax-cell[data-square="a8"]').focus();
   await page.waitForTimeout(200);
   const intro = await page.locator(".chessjax-live").textContent();
   check("intro по фокусу: Шахматная доска", intro.includes("Шахматная доска"), intro);
+  check("intro не зовёт включать режим NVDA руками", !/режим редактирования NVDA/.test(intro), intro);
+  check("intro оставляет запасной путь для JAWS", /JAWS/.test(intro), intro);
 
   // Стрелки ↑/↓ — по клеткам (roving tabindex): a8 → a7 → a8.
   await page.keyboard.press("ArrowDown");

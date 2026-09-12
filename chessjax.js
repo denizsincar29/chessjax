@@ -79,7 +79,7 @@ const I18N = {
     },
     adv: { w: "Преимущество белых", b: "Преимущество чёрных" },
     equalPosition: "Позиция равная",
-    intro: "Шахматная доска. Для взаимодействия включите режим редактирования NVDA или режим форм JAWS. Клавиша H — инструкция по управлению.",
+    intro: "Шахматная доска. Стрелки ведут по клеткам, клавиша H — инструкция по управлению. В JAWS, если стрелки не работают, включите режим форм.",
     // Анонс перед доской: его читает скринридер, листая документ стрелками.
     boardIntro: "Шахматная доска, область. Нажмите Enter, чтобы взаимодействовать с доской.",
     help: [
@@ -163,7 +163,7 @@ const I18N = {
     },
     adv: { w: "White advantage", b: "Black advantage" },
     equalPosition: "Equal position",
-    intro: "Chessboard. To interact, switch NVDA to focus mode or JAWS to forms mode. Press H for usage instructions.",
+    intro: "Chessboard. The arrows move over the squares, press H for usage instructions. In JAWS, if the arrows do not work, switch to forms mode.",
     boardIntro: "Chessboard, region. Press Enter to interact with the board.",
     help: [
       "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates. If the board does not take keys yet, press Enter on its announcement or click the board — the focus lands on a square.",
@@ -243,7 +243,7 @@ const I18N = {
     },
     adv: { w: "Weißer Vorteil", b: "Schwarzer Vorteil" },
     equalPosition: "Ausgeglichene Stellung",
-    intro: "Schachbrett. Zum Bedienen NVDA in den Fokusmodus oder JAWS in den Formularmodus schalten. Taste H — Bedienungsanleitung.",
+    intro: "Schachbrett. Die Pfeiltasten führen über die Felder, Taste H — Bedienungsanleitung. In JAWS bei Bedarf in den Formularmodus schalten.",
     boardIntro: "Schachbrett, Bereich. Enter drücken, um mit dem Brett zu arbeiten.",
     help: [
       "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten. Nimmt das Brett noch keine Tasten an, Enter auf der Ankündigung drücken oder das Brett anklicken — der Fokus landet auf einem Feld.",
@@ -323,7 +323,7 @@ const I18N = {
     },
     adv: { w: "Beyaz avantaj", b: "Siyah avantaj" },
     equalPosition: "Konum dengede",
-    intro: "Satranç tahtası. Etkileşim için NVDA'da odak moduna veya JAWS'ta form moduna geçin. Kullanım talimatları için H tuşu.",
+    intro: "Satranç tahtası. Oklar kareler üzerinde gezinir, kullanım talimatları için H tuşuna basın. JAWS'ta oklar çalışmazsa form moduna geçin.",
     boardIntro: "Satranç tahtası, bölge. Tahtayla etkileşim için Enter'a basın.",
     help: [
       "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız. Tahta henüz tuşları almıyorsa, duyurusunda Enter'a basın veya tahtaya tıklayın — odak bir kareye gelir.",
