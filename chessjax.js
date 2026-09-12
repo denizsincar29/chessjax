@@ -556,18 +556,26 @@ export function renderBoard(container, fen, opts = {}) {
 // каждая клетка — фокусируемый div с aria-label «Чёрная пешка B7» / пустая «E5»,
 // скринридер читает только его. Заголовки не нужны: координату несёт сама клетка.
 //
-// role="application" — не украшение, а условие работы. Доска ведёт клавиши сама
-// (стрелки ходят по клеткам), но фокусируемый div сам по себе режим форм у NVDA
-// не включает: без этой роли Enter ставил фокус на клетку, а скринридер оставался
-// в режиме чтения и стрелками уводил из доски в текст документа. Роль говорит
-// скринридеру «клавиши внутри — не твои».
+// Клавиши доска ведёт сама (стрелки ходят по клеткам), значит скринридер обязан
+// уйти из режима чтения в режим форм — иначе стрелки листают документ, а не
+// клетки. NVDA решает это на фокус-событии (source/browseMode.py,
+// BrowseModeTreeInterceptor.shouldPassThrough) и переключается только для
+// известного набора ролей: editable, list/listitem, tree/treeitem, slider,
+// combobox, tabcontrol, menubar, popupmenu, spinbutton, строка/ячейка таблицы —
+// либо когда среди ПРЕДКОВ фокуса есть toolbar. role="application" в этот
+// список не входит и на потомков не влияет: на живом NVDA доска с ним так и
+// осталась в режиме чтения. Поэтому доска — toolbar (стрелки внутри тулбара
+// NVDA и так отдаёт приложению). Чтобы скринридер не говорил «панель
+// инструментов», имя роли переопределено: aria-roledescription он произносит
+// вместо роли, а aria-label даёт доске имя для списка элементов.
 function renderGrid(parsed, lang, opts = {}) {
   const activeSquare = opts.activeSquare;
   const highlight = opts.highlight; // Set квадратов хода варианта — подсветка
   const t = I18N[lang] || I18N.ru;
   const board = document.createElement("div");
   board.className = "chessjax-board";
-  board.setAttribute("role", "application");
+  board.setAttribute("role", "toolbar");
+  board.setAttribute("aria-roledescription", t.board);
   board.setAttribute("aria-label", t.board);
 
   for (let r = 0; r < 8; r++) {

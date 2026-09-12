@@ -60,15 +60,24 @@ async function openPage(path) {
   check("демо: 64 клетки", cells === 64, "cells=" + cells);
   check("демо: доска не таблица (нет th)", th === 0, "th=" + th);
 
-  // Доска — приложение: клавиши внутри ведёт она сама, и скринридер обязан
-  // отдавать их ей, а не листать документ стрелками. Фокусируемого div'а для
-  // этого мало — роль и есть та самая кнопка «режим форм» у NVDA.
+  // Клавиши внутри ведёт доска, и скринридер обязан отдавать их ей, а не листать
+  // документ стрелками. Фокусируемого div'а для этого мало: NVDA включает режим
+  // форм на фокус-событии только для известных ролей, и toolbar среди предков
+  // фокуса — одна из них (в отличие от role="application", который в списке
+  // NVDA отсутствует). Имя роли переопределено, чтобы не звучало «панель
+  // инструментов».
   const boardRole = await page.evaluate(() => {
     const el = document.querySelector(".chessjax-board");
-    return { role: el.getAttribute("role"), label: el.getAttribute("aria-label") };
+    return {
+      role: el.getAttribute("role"),
+      roledescription: el.getAttribute("aria-roledescription"),
+      label: el.getAttribute("aria-label"),
+    };
   });
-  check("демо: доска объявлена приложением", boardRole.role === "application", JSON.stringify(boardRole));
-  check("демо: у приложения есть имя", /доска/i.test(boardRole.label || ""), boardRole.label);
+  check("демо: доска — тулбар (NVDA уходит в режим форм)", boardRole.role === "toolbar", JSON.stringify(boardRole));
+  check("демо: роль объявлена как доска, а не «панель инструментов»",
+    /доска/i.test(boardRole.roledescription || ""), boardRole.roledescription);
+  check("демо: у доски есть имя", /доска/i.test(boardRole.label || ""), boardRole.label);
 
   const a1 = await page.locator('.chessjax-cell[data-square="a1"]').getAttribute("aria-label");
   check("демо: a1 = Белая ладья A1", a1 === "Белая ладья A1", a1);
