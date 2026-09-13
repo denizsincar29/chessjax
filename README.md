@@ -133,6 +133,20 @@ was off. Hold again to disable.
 - `examples/story.html` — a game with move buttons in page text (Morphy's Opera Game).
 - `examples/variations.html` — comments and `$[…]` variations, V/Esc keys.
 
+## Board appearance
+
+Pieces are inline SVG (the free Cburnett set from Wikimedia Commons), not Unicode
+characters: a glyph depends on the installed font and some fonts replace the chess
+symbols with colour emoji. The SVG markup is built into `chessjax.js` — no extra
+files and no network requests — and is `aria-hidden`: the screen reader reads the
+cell's `aria-label`, never the picture.
+
+The board styles itself: on first render `chessjax.js` injects one `<style>` with
+rounded corners, a drop shadow, coordinates (drawn by CSS from `data-file` /
+`data-rank` — they are not in the DOM) and the piece size. Square colours and the
+piece colours stay yours: a page rule with higher specificity, e.g.
+`.preview .chessjax-cell.square-dark`, overrides the defaults.
+
 ## Tests
 
 - `test-fen.mjs` — units (FEN, PGN, positions, comments, variations): `node test-fen.mjs`.

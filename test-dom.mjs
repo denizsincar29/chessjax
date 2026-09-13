@@ -86,22 +86,67 @@ async function openPage(path) {
   const e4 = await page.locator('.chessjax-cell[data-square="e4"]').getAttribute("aria-label");
   check("демо: e4 (пустая) = E4", e4 === "E4", e4);
 
-  // Фигура нарисована юникод-глифом, но скринридеру он не адресован: имя клетки
-  // берётся из aria-label, а глиф спрятан в aria-hidden-обёртку. Иначе NVDA
-  // в режиме чтения произносит фигуру поверх подписи — дважды.
+  // Фигура нарисована инлайн-SVG, но скринридеру он не адресован: имя клетки
+  // берётся из aria-label, а картинка спрятана в aria-hidden. Иначе NVDA в
+  // режиме чтения произносит фигуру поверх подписи — дважды.
   const glyph = await page.evaluate(() => {
     const cell = document.querySelector('.chessjax-cell[data-square="d1"]');
-    const span = cell.firstElementChild;
+    const svg = cell.firstElementChild;
     return {
-      tag: span ? span.tagName : null,
-      hidden: span ? span.getAttribute("aria-hidden") : null,
-      text: span ? span.textContent : null,
-      cellText: cell.textContent,
+      tag: svg ? svg.tagName.toLowerCase() : null,
+      cls: svg ? svg.getAttribute("class") : null,
+      hidden: svg ? svg.getAttribute("aria-hidden") : null,
+      focusable: svg ? svg.getAttribute("focusable") : null,
+      viewBox: svg ? svg.getAttribute("viewBox") : null,
+      shapes: svg ? svg.querySelectorAll("path, circle").length : 0,
+      markup: svg ? svg.innerHTML : "",
+      cellText: cell.textContent.trim(),
+      rect: svg ? { w: Math.round(svg.getBoundingClientRect().width), h: Math.round(svg.getBoundingClientRect().height) } : null,
+      cellRect: { w: Math.round(cell.getBoundingClientRect().width), h: Math.round(cell.getBoundingClientRect().height) },
+      styleTag: !!document.getElementById("chessjax-styles"),
     };
   });
-  check("демо: глиф фигуры обёрнут в aria-hidden",
-    glyph.tag === "SPAN" && glyph.hidden === "true", JSON.stringify(glyph));
-  check("демо: глиф на месте (ферзь d1)", glyph.text === "♕" && glyph.cellText === "♕", JSON.stringify(glyph));
+  check("демо: фигура — svg с классом chessjax-piece, спрятанный от скринридера",
+    glyph.tag === "svg" && glyph.cls === "chessjax-piece" &&
+    glyph.hidden === "true" && glyph.focusable === "false",
+    JSON.stringify({ tag: glyph.tag, cls: glyph.cls, hidden: glyph.hidden }));
+  check("демо: svg ферзя d1 нарисован (viewBox 45×45, есть контуры)",
+    glyph.viewBox === "0 0 45 45" && glyph.shapes >= 3,
+    JSON.stringify({ viewBox: glyph.viewBox, shapes: glyph.shapes }));
+  check("демо: клетка не несёт текста — координаты рисует CSS из data-атрибутов",
+    glyph.cellText === "" && glyph.markup.indexOf("<") === 0, JSON.stringify(glyph.cellText));
+  // Без стилей svg без width/height разворачивается в 300×150 и ломает сетку —
+  // поэтому проверяем не только наличие узла, но и его реальный размер.
+  check("демо: стили доски вставлены, фигура вписана в клетку",
+    glyph.styleTag && !!glyph.rect && glyph.rect.w === glyph.rect.h &&
+    Math.abs(glyph.rect.w / glyph.cellRect.w - 0.92) < 0.05,
+    JSON.stringify({ rect: glyph.rect, cell: glyph.cellRect }));
+  const d8 = await page.evaluate(() => {
+    const cell = document.querySelector('.chessjax-cell[data-square="d8"]');
+    const svg = cell.firstElementChild;
+    return { markup: svg ? svg.innerHTML : "", square: cell.dataset.square };
+  });
+  check("демо: белая и чёрная фигуры — разная разметка",
+    !!d8.markup && d8.markup !== glyph.markup,
+    "d8=" + d8.markup.length + "Б d1=" + glyph.markup.length + "Б");
+  const coords = await page.evaluate(() => {
+    const f = document.querySelector('.chessjax-cell[data-square="a1"]');
+    const s = document.querySelector('.chessjax-cell[data-square="h8"]');
+    return { file: f.classList.contains("coord-file"), rank: f.classList.contains("coord-rank"),
+             dataFile: f.dataset.file, dataRank: f.dataset.rank, h8file: s.classList.contains("coord-file") };
+  });
+  check("демо: координаты — классы и data-атрибуты на краевых клетках",
+    coords.file && coords.rank && coords.dataFile === "a" && coords.dataRank === "1" && !coords.h8file,
+    JSON.stringify(coords));
+  // Тёмная клетка — та, у которой сумма вертикали и горизонтали чётная: a1
+  // тёмная, h1 светлая. Иначе доска выглядит перевёрнутой по цвету.
+  const squares = await page.evaluate(() => {
+    const of = (sq) => document.querySelector('.chessjax-cell[data-square="' + sq + '"]').className;
+    return { a1: /square-dark/.test(of("a1")), h1: /square-light/.test(of("h1")),
+             a8: /square-light/.test(of("a8")), h8: /square-dark/.test(of("h8")) };
+  });
+  check("демо: цвет клеток как на настоящей доске (a1 тёмная, h1 светлая)",
+    squares.a1 && squares.h1 && squares.a8 && squares.h8, JSON.stringify(squares));
   const summary = await page.locator(".chessjax-summary").textContent();
   check("демо: summary «Ход белых»", summary.includes("Ход белых"), summary);
 
@@ -278,8 +323,11 @@ async function openPage(path) {
   // _show() звал replaceChildren, сфокусированная клетка исчезала, и скринридер
   // на каждом ходе заново объявлял контейнер («Шахматная доска, Шахматная
   // доска, раздел»), а буквенные клавиши доски терялись.
-  const b5Before = await page.evaluate(() =>
-    document.querySelector('.chessjax-cell[data-square="b5"]').getAttribute("aria-label"));
+  const b5Before = await page.evaluate(() => {
+    const cell = document.querySelector('.chessjax-cell[data-square="b5"]');
+    const svg = cell.firstElementChild;
+    return { label: cell.getAttribute("aria-label"), markup: svg ? svg.innerHTML : "" };
+  });
   await page.evaluate(() => {
     window.__cells = {};
     for (const c of document.querySelectorAll(".chessjax-cell")) window.__cells[c.dataset.square] = c;
@@ -294,16 +342,22 @@ async function openPage(path) {
       total: cells.length,
       same,
       focused: document.activeElement.dataset.square || null,
-      b5: document.querySelector('.chessjax-cell[data-square="b5"]').getAttribute("aria-label"),
-      glyph: document.querySelector('.chessjax-cell[data-square="b5"] span[aria-hidden]').textContent,
+      b5: (() => {
+        const cell = document.querySelector('.chessjax-cell[data-square="b5"]');
+        const svg = cell.firstElementChild;
+        return { label: cell.getAttribute("aria-label"), markup: svg ? svg.innerHTML : "" };
+      })(),
+      isSvg: !!document.querySelector('.chessjax-cell[data-square="b5"] svg.chessjax-piece'),
     };
   });
   check("ход не пересобирает клетки (те же 64 узла)",
     afterMove.total === 64 && afterMove.same === 64, JSON.stringify({ total: afterMove.total, same: afterMove.same }));
   check("фокус пережил ход (не улетел в body)", afterMove.focused === "g7", afterMove.focused);
   check("клетка b5 перекрашена после хода",
-    afterMove.b5 !== b5Before && /конь/i.test(afterMove.b5) && afterMove.glyph === "♘",
-    JSON.stringify({ was: b5Before, now: afterMove.b5, glyph: afterMove.glyph }));
+    afterMove.b5.label !== b5Before.label && /конь/i.test(afterMove.b5.label) &&
+    afterMove.isSvg && afterMove.b5.markup !== b5Before.markup,
+    JSON.stringify({ was: b5Before.label, now: afterMove.b5.label,
+                     svg: afterMove.isSvg, redrawn: afterMove.b5.markup !== b5Before.markup }));
   // Возвращаем доску на 10...cxb5 — на этой позиции стоят следующие проверки.
   await page.keyboard.press("Control+ArrowRight");
   await page.waitForTimeout(250);
