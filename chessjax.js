@@ -569,8 +569,6 @@ export function renderBoard(container, fen, opts = {}) {
 // инструментов», имя роли переопределено: aria-roledescription он произносит
 // вместо роли, а aria-label даёт доске имя для списка элементов.
 function renderGrid(parsed, lang, opts = {}) {
-  const activeSquare = opts.activeSquare;
-  const highlight = opts.highlight; // Set квадратов хода варианта — подсветка
   const t = I18N[lang] || I18N.ru;
   const board = document.createElement("div");
   board.className = "chessjax-board";
@@ -581,17 +579,41 @@ function renderGrid(parsed, lang, opts = {}) {
   for (let r = 0; r < 8; r++) {
     const rank = RANKS[r];
     for (let f = 0; f < 8; f++) {
-      const file = FILES[f];
-      const square = file + rank;
       const cell = document.createElement("div");
       cell.className = "chessjax-cell " + ((f + r) % 2 === 0 ? "square-dark" : "square-light");
-      if (highlight && highlight.has(square)) cell.classList.add("variant-highlight");
-      cell.dataset.square = square;
-      // roving tabindex: только активная клетка в порядке таба, остальные доступны стрелками.
-      cell.tabIndex = square === activeSquare ? 0 : -1;
-      const piece = parsed.board.get(square);
+      cell.dataset.square = FILES[f] + rank;
+      board.appendChild(cell);
+    }
+  }
+  applyPosition(board, parsed, lang, opts);
+  return board;
+}
+
+// Расстановка на уже существующих клетках: узлы не пересоздаются, меняется
+// только их содержимое. Это не косметика — на каждом ходе доска раньше
+// собиралась заново (replaceChildren), сфокусированная клетка исчезала, и
+// скринридер на новом фокусе заново объявлял контейнер («Шахматная доска,
+// Шахматная доска, раздел») прежде чем прочитать ход. Теперь фокус и режим форм
+// переживают ход, а буквенные клавиши доски (V, F, B, A, H) не теряются.
+function applyPosition(board, parsed, lang, opts = {}) {
+  const activeSquare = opts.activeSquare;
+  const highlight = opts.highlight; // Set квадратов хода варианта — подсветка
+  for (const cell of board.children) {
+    const square = cell.dataset.square;
+    const piece = parsed.board.get(square);
+    // roving tabindex: только активная клетка в порядке таба, остальные доступны стрелками.
+    cell.tabIndex = square === activeSquare ? 0 : -1;
+    cell.classList.toggle("variant-highlight", !!(highlight && highlight.has(square)));
+    cell.classList.toggle("has-piece", !!piece);
+    if (piece) cell.classList.add("piece-" + piece.color);
+    else cell.classList.remove("piece-w", "piece-b");
+    // Дети клетки (глиф) пересобираются, только если фигура на ней правда
+    // сменилась: лишние правки DOM — лишние события для скринридера.
+    const want = piece ? piece.color + piece.piece : "";
+    if (cell.dataset.piece !== want) {
+      cell.dataset.piece = want;
+      cell.replaceChildren();
       if (piece) {
-        cell.classList.add("has-piece", "piece-" + piece.color);
         // Юникод-фигура — только для глаз. Скринридеру её читать нечего: клетка
         // названа aria-label'ом, а глиф он произносил бы поверх («чёрный конь»
         // дважды либо «U+265E»). Для этого и aria-hidden.
@@ -599,17 +621,19 @@ function renderGrid(parsed, lang, opts = {}) {
         glyph.setAttribute("aria-hidden", "true");
         glyph.textContent = GLYPH[piece.color === "w" ? piece.piece.toUpperCase() : piece.piece];
         cell.appendChild(glyph);
-        // «Чёрный ферзь D5» — фигура (с родом из i18n) перед координатой.
-        const label = pieceLabel(piece, lang);
-        cell.setAttribute("aria-label", label.charAt(0).toUpperCase() + label.slice(1) + " " + square.toUpperCase());
       } else {
-        cell.textContent = " ";
-        cell.setAttribute("aria-label", square.toUpperCase());
+        cell.appendChild(document.createTextNode(" "));
       }
-      board.appendChild(cell);
     }
+    // «Чёрный ферзь D5» — фигура (с родом из i18n) перед координатой.
+    const label = piece
+      ? (() => {
+          const l = pieceLabel(piece, lang);
+          return l.charAt(0).toUpperCase() + l.slice(1) + " " + square.toUpperCase();
+        })()
+      : square.toUpperCase();
+    if (cell.getAttribute("aria-label") !== label) cell.setAttribute("aria-label", label);
   }
-  return board;
 }
 
 function renderSummary(parsed, lang) {
@@ -1096,14 +1120,15 @@ class ChessboardElement extends HTMLElement {
     let highlight = null;
     if (this._variant && pos.move) highlight = new Set([pos.move.from, pos.move.to]);
 
-    const activeEl = document.activeElement;
-    const hadCellFocus = !!(activeEl && activeEl.closest && activeEl.closest(".chessjax-cell") && this._tableWrap.contains(activeEl));
-    const grid = renderGrid(parsed, lang, { activeSquare: this._activeSquare, highlight });
-    this._tableWrap.replaceChildren(grid);
-    // Фокус был на клетке — восстанавливаем на той же координате после перерисовки.
-    if (hadCellFocus) {
-      const cell = grid.querySelector(`[data-square="${this._activeSquare}"]`);
-      if (cell) cell.focus();
+    // Клетки живут между ходами: обновляем расстановку на месте, а заново
+    // собираем только если доски ещё нет (первый показ, смена разметки, ошибка).
+    const grid = this._tableWrap.querySelector(".chessjax-board");
+    if (grid) {
+      applyPosition(grid, parsed, lang, { activeSquare: this._activeSquare, highlight });
+    } else {
+      this._tableWrap.replaceChildren(
+        renderGrid(parsed, lang, { activeSquare: this._activeSquare, highlight }),
+      );
     }
 
     this._summary.textContent = fenSummary(parsed, lang);

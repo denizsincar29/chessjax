@@ -274,6 +274,40 @@ async function openPage(path) {
   const still = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
   check("фокус восстановлен на g7 после смены хода Ctrl+стрелкой", still === "g7", still);
 
+  // Регрессия (живой баг Дениза 13.09): ход не пересобирает клетки. Раньше
+  // _show() звал replaceChildren, сфокусированная клетка исчезала, и скринридер
+  // на каждом ходе заново объявлял контейнер («Шахматная доска, Шахматная
+  // доска, раздел»), а буквенные клавиши доски терялись.
+  const b5Before = await page.evaluate(() =>
+    document.querySelector('.chessjax-cell[data-square="b5"]').getAttribute("aria-label"));
+  await page.evaluate(() => {
+    window.__cells = {};
+    for (const c of document.querySelectorAll(".chessjax-cell")) window.__cells[c.dataset.square] = c;
+  });
+  await page.keyboard.press("Control+ArrowLeft"); // назад: 10.Nxb5 — на b5 снова конь
+  await page.waitForTimeout(250);
+  const afterMove = await page.evaluate(() => {
+    const cells = document.querySelectorAll(".chessjax-cell");
+    let same = 0;
+    for (const c of cells) if (window.__cells[c.dataset.square] === c) same++;
+    return {
+      total: cells.length,
+      same,
+      focused: document.activeElement.dataset.square || null,
+      b5: document.querySelector('.chessjax-cell[data-square="b5"]').getAttribute("aria-label"),
+      glyph: document.querySelector('.chessjax-cell[data-square="b5"] span[aria-hidden]').textContent,
+    };
+  });
+  check("ход не пересобирает клетки (те же 64 узла)",
+    afterMove.total === 64 && afterMove.same === 64, JSON.stringify({ total: afterMove.total, same: afterMove.same }));
+  check("фокус пережил ход (не улетел в body)", afterMove.focused === "g7", afterMove.focused);
+  check("клетка b5 перекрашена после хода",
+    afterMove.b5 !== b5Before && /конь/i.test(afterMove.b5) && afterMove.glyph === "♘",
+    JSON.stringify({ was: b5Before, now: afterMove.b5, glyph: afterMove.glyph }));
+  // Возвращаем доску на 10...cxb5 — на этой позиции стоят следующие проверки.
+  await page.keyboard.press("Control+ArrowRight");
+  await page.waitForTimeout(250);
+
   // Справка по H: разделы листаются по кругу, после последнего — закрытие.
   await page.locator('.chessjax-cell[data-square="a7"]').focus();
   await page.waitForTimeout(150);
