@@ -37,6 +37,27 @@ function check(name, cond, detail = "") {
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
+// Тон оценки — метка длиной 50 мс, а не полусекундный гул (фидбек Дениза 13.09:
+// «тон слишком длинный, буквально 50 мс делай пик»). Настоящий Web Audio в
+// headless не послушать, поэтому подменяем AudioContext подклассом, который
+// записывает, на сколько осциллятор просил себя остановить: osc.stop(t0 + Δ).
+await page.addInitScript(() => {
+  const Orig = window.AudioContext || window.webkitAudioContext;
+  if (!Orig) return;
+  window.__toneSpans = [];
+  window.AudioContext = class extends Orig {
+    createOscillator() {
+      const osc = super.createOscillator();
+      const stop = osc.stop.bind(osc);
+      const self = this;
+      osc.stop = (t) => {
+        if (typeof t === "number") window.__toneSpans.push(+(t - self.currentTime).toFixed(4));
+        return stop(t);
+      };
+      return osc;
+    }
+  };
+});
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 page.on("console", (m) => { if (m.type() === "error") errors.push("[console] " + m.text()); });
@@ -82,7 +103,10 @@ const ROAST = /Ооо|прекрасно съел|Ням|утиль|Вау, во
   await focusCell();
   await page.keyboard.press("b");
   const t0 = Date.now();
-  check("B: заявлен запрос к движку (ленивая загрузка сработала)", sfReqs.length >= 1, sfReqs.length + " reqs");
+  // Запрос уходит из асинхронного обработчика, а модуль движка тянется с CDN —
+  // проверка «сразу после нажатия» ловит гонку. Ждём запрос.
+  const asked = await waitFor(() => sfReqs.length >= 1, 10000);
+  check("B: заявлен запрос к движку (ленивая загрузка сработала)", asked, sfReqs.length + " reqs");
   const ok = await waitFor(async () => /Лучший ход/.test(await live()));
   check("B: результат — оценка и лучший ход", ok, JSON.stringify({ ms: Date.now() - t0, text: await live() }));
   check("B: подсвечено 2 клетки", (await hl()) === 2, "hl=" + (await hl()));
@@ -112,6 +136,13 @@ const ROAST = /Ооо|прекрасно съел|Ням|утиль|Вау, во
   const t0 = Date.now();
   const ok = await waitFor(async () => VERDICT.test(await verdictLive()));
   check("ход вперёд: вердикт движка", ok, JSON.stringify({ ms: Date.now() - t0, text: await verdictLive() }));
+
+  // Тон оценки звучит на каждом ходу — и обязан быть вспышкой в 50 мс.
+  const spans = await page.evaluate(() => window.__toneSpans || []);
+  check("тон оценки играет на ходу", spans.length >= 1, "spans=" + JSON.stringify(spans));
+  check("тон оценки — 50 мс, не длиннее",
+    spans.length >= 1 && spans.every((s) => Math.abs(s - 0.05) < 0.02),
+    "spans=" + JSON.stringify(spans));
 }
 
 // Долгое A (2 сек) — скрытый роаст.

@@ -845,8 +845,13 @@ function unlockAudio() {
 // Тон преимущества: квадратная волна, частота 220·2^(white/2.5) Гц, где white —
 // оценка белых в пешках (белые впереди — выше, чёрные — ниже). Ограничитель
 // 70–1500 Гц: оценка движка в реальных партиях уходит за ±10 пешек (при угрозе
-// мата и ±30), а без clamp частота уходит в ультра/инфразвук. Короткий, с плавной
-// атакой и релизом — чтобы в авто-прогоне ходов не раздражал.
+// мата и ±30), а без clamp частота уходит в ультра/инфразвук.
+//
+// Длительность — 50 мс (фидбек Дениза 13.09: «тон слишком длинный, буквально
+// 50 мс делай пик»). Это метка-вспышка, а не звук: в авто-прогоне ходов тон
+// звучит на каждом ходу, и полсекунды на каждом — каша. Атака 5 мс, отпускание
+// к 50 мс — щелчок с высотой, по которой слышно перевес.
+const ADVANTAGE_TONE_S = 0.05;
 function playAdvantageTone(cpWhite) {
   const ctx = getAudioCtx();
   if (!ctx) return;
@@ -860,12 +865,12 @@ function playAdvantageTone(cpWhite) {
   osc.type = "square";
   osc.frequency.value = freq;
   g.gain.setValueAtTime(0, t0);
-  g.gain.linearRampToValueAtTime(0.12, t0 + 0.04); // атака
-  g.gain.setValueAtTime(0.12, t0 + 0.3); // удержание
-  g.gain.linearRampToValueAtTime(0, t0 + 0.45); // релиз
+  g.gain.linearRampToValueAtTime(0.12, t0 + 0.005); // атака
+  g.gain.setValueAtTime(0.12, t0 + 0.02); // удержание
+  g.gain.linearRampToValueAtTime(0, t0 + ADVANTAGE_TONE_S); // отпускание
   osc.connect(g).connect(ctx.destination);
   osc.start(t0);
-  osc.stop(t0 + 0.45);
+  osc.stop(t0 + ADVANTAGE_TONE_S);
 }
 
 // --- Анализ Stockfish ----------------------------------------------------------
@@ -1231,6 +1236,11 @@ class ChessboardElement extends HTMLElement {
     // собираем только если доски ещё нет (первый показ, смена разметки, ошибка).
     const grid = this._tableWrap.querySelector(".chessjax-board");
     if (grid) {
+      // Подсветка лучшего хода живёт классом на клетке, а клетки между ходами не
+      // пересобираются (v0.6.7) — перерисовка её больше не снимает. Гасим явно:
+      // иначе она переживёт и Escape, и переход к другой позиции, а оставшаяся
+      // пометка «лучший ход» в aria-label снова прозвучит на новом ходу.
+      this._clearAnalysisHighlight(grid);
       applyPosition(grid, parsed, lang, { activeSquare: this._activeSquare, highlight });
     } else {
       this._tableWrap.replaceChildren(
@@ -1657,6 +1667,15 @@ class ChessboardElement extends HTMLElement {
     return uci.slice(0, 2).toUpperCase() + "-" + uci.slice(2, 4).toUpperCase();
   }
 
+  // Снять подсветку лучшего хода: класс клетки — и всё, что он значит.
+  // aria-label вернёт applyPosition при ближайшей перерисовке (она всегда
+  // пересобирает подпись клетки), а класс надо снимать руками — см. _show.
+  _clearAnalysisHighlight(grid = null) {
+    const board = grid || (this._tableWrap && this._tableWrap.querySelector(".chessjax-board"));
+    if (!board) return;
+    for (const cell of board.querySelectorAll(".analysis-move")) cell.classList.remove("analysis-move");
+  }
+
   // Подсветка клеток лучшего хода: класс для зрячих + пометка в aria-label
   // для скринридера («E2, лучший ход»).
   _applyAnalysisHighlight() {
@@ -1688,7 +1707,7 @@ class ChessboardElement extends HTMLElement {
     this._analysis = null;
     this._analyzing = false;
     this._analysisFen = null;
-    this._show({ announce: false }); // перерисовка снимает классы подсветки
+    this._show({ announce: false }); // _show гасит класс подсветки — см. _clearAnalysisHighlight
     speak(this._live, t.analysisCleared);
   }
 

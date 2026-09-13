@@ -120,8 +120,9 @@ square gets a blue outline.
 "brilliant", "good", "interesting", "inaccuracy", "mistake", "blunder" (compared
 against the engine's best move; otherwise by evaluation loss). The number is
 never spoken — its magnitude is marked by a tone whose pitch rises with the
-advantage. Disable tones with `tone="off"` (only the tone) or `sound="off"`
-(entire audio subsystem).
+advantage. The tone is a 50-millisecond blip, not a note: it fires on every move
+of a game review. **Escape** clears the highlight. Disable tones with
+`tone="off"` (only the tone) or `sound="off"` (entire audio subsystem).
 
 **Roast mode** — hold **A** for 2 seconds: same analysis, informal verdicts
 ("Oh, beautiful!", "That move is complete nonsense!"). Turn on analysis if it

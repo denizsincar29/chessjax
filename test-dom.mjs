@@ -358,6 +358,28 @@ async function openPage(path) {
     afterMove.isSvg && afterMove.b5.markup !== b5Before.markup,
     JSON.stringify({ was: b5Before.label, now: afterMove.b5.label,
                      svg: afterMove.isSvg, redrawn: afterMove.b5.markup !== b5Before.markup }));
+  // Регрессия от перехода на обновление на месте (v0.6.7): подсветка лучшего
+  // хода — класс на клетке, а клетки между ходами больше не пересобираются,
+  // поэтому _show() перестала её снимать. Escape после «лучшего хода» оставлял
+  // доску подсвеченной, а «лучший ход» из aria-label скринридер читал до конца
+  // партии — на любой другой позиции.
+  const hl = await page.evaluate(() => {
+    const board = document.querySelector("chessjax-board");
+    board._analysis = { best: "b5c7" }; // как будто движок ответил
+    board._applyAnalysisHighlight();
+    const cell = document.querySelector('.chessjax-cell[data-square="b5"]');
+    return { cells: document.querySelectorAll(".chessjax-cell.analysis-move").length, label: cell.getAttribute("aria-label") };
+  });
+  await page.evaluate(() => document.querySelector("chessjax-board")._show({ announce: false }));
+  const hlGone = await page.evaluate(() => ({
+    cells: document.querySelectorAll(".chessjax-cell.analysis-move").length,
+    label: document.querySelector('.chessjax-cell[data-square="b5"]').getAttribute("aria-label"),
+  }));
+  check("подсветка лучшего хода — две клетки и пометка в подписи",
+    hl.cells === 2 && /лучший ход/i.test(hl.label), JSON.stringify(hl));
+  check("перерисовка гасит подсветку лучшего хода (класс и aria-label)",
+    hlGone.cells === 0 && !/лучший ход/i.test(hlGone.label), JSON.stringify(hlGone));
+
   // Возвращаем доску на 10...cxb5 — на этой позиции стоят следующие проверки.
   await page.keyboard.press("Control+ArrowRight");
   await page.waitForTimeout(250);
