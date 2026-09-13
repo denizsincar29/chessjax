@@ -19,7 +19,9 @@ const RANKS = "87654321";
 
 // --- i18n -----------------------------------------------------------------
 
-const I18N = {
+// Экспортируется: тесты берут банки фраз прямо отсюда, чтобы список проверяемых
+// вердиктов не расходился с содержимым словаря.
+export const I18N = {
   ru: {
     board: "Шахматная доска",
     col: "колонка",
@@ -56,26 +58,31 @@ const I18N = {
     mateIn: (n) => "мат в " + n,
     analysisCleared: "Анализ снят",
     analysisError: "Анализ: не удалось загрузить движок",
+    // Винительный падеж — для фраз о взятии: «съел пешку», «утащил ферзя».
+    acc: { k: "короля", q: "ферзя", r: "ладью", b: "слона", n: "коня", p: "пешку" },
     verdict: {
-      great: "Прекрасный ход",
-      good: "Хороший ход",
-      interesting: "Интересный ход",
-      inaccuracy: "Неточность",
-      mistake: "Ошибка",
-      blunder: "Грубая ошибка",
+      great: ["Прекрасный ход", "Сильнейшее продолжение", "Лучший ход в позиции", "Точно в цель", "Именно то, что нужно"],
+      good: ["Хороший ход", "Крепкий ход", "Разумное продолжение", "Верное решение", "Достойно"],
+      interesting: ["Интересный ход", "Любопытная идея", "Неочевидно, но возможно", "Ход на засыпку", "Есть замысел"],
+      inaccuracy: ["Неточность", "Можно было точнее", "Не самое сильное продолжение", "Чуть хуже, чем следовало", "Позиция слегка ухудшилась"],
+      mistake: ["Ошибка", "Заметная потеря", "Так играть не стоит", "Упускает преимущество", "Позиция ухудшилась"],
+      blunder: ["Грубая ошибка", "Зевок", "Серьёзная потеря", "Позиция резко ухудшилась", "Дорогостоящая ошибка"],
     },
     roast: {
-      great: ["Ооо, прекрасно!", "Вау, вот это ход!", "Мастерски!", "Красота!"],
+      great: ["Ооо, прекрасно!", "Вау, вот это ход!", "Мастерски!", "Красота!", "Ну ты даёшь!", "Снимаю шляпу!", "Это по-королевски!"],
       greatCapture: [
-        (p) => "Ооо, прекрасно съел " + { p: "пешку", n: "коня", b: "слона", r: "ладью", q: "ферзя", k: "короля" }[p] + "!",
-        (p) => "Ням, " + { p: "пешка", n: "конь", b: "слон", r: "ладья", q: "ферзь", k: "король" }[p] + " был вкусный!",
-        (p) => "И " + { p: "пешка", n: "конь", b: "слон", r: "ладья", q: "ферзь", k: "король" }[p] + " отправился в утиль!",
+        (c) => "Ооо, прекрасно съел " + c.t.acc[c.p] + "!",
+        (c) => "Ням, " + c.t.pieces[c.p] + (c.t.gender[c.p] === "f" ? " была вкусная!" : " был вкусный!"),
+        (c) => "И " + c.t.pieces[c.p] + (c.t.gender[c.p] === "f" ? " отправилась" : " отправился") + " в утиль!",
+        (c) => "Хоп — и " + c.t.acc[c.p] + " с доски!",
+        (c) => "Спасибо за " + c.t.acc[c.p] + "!",
+        (c) => "Утащил " + c.t.acc[c.p] + " прямо из-под носа!",
       ],
-      good: ["Неплохо!", "Норм!", "Сойдёт!"],
-      interesting: ["О, интересно...", "Хм, любопытно...", "Что-то задумал..."],
-      inaccuracy: ["Так себе, но вроде ладно...", "Не уверен в этом...", "Могло быть и лучше..."],
-      mistake: ["Хм, не лучшая идея...", "Рискованно...", "Ой..."],
-      blunder: ["Ход полная хрень!", "Что ты делаешь?!", "Это провал!"],
+      good: ["Неплохо!", "Норм!", "Сойдёт!", "Смотри-ка, умеешь!", "Так и надо!"],
+      interesting: ["О, интересно...", "Хм, любопытно...", "Что-то задумал...", "Интрига!", "А это уже любопытно..."],
+      inaccuracy: ["Так себе, но вроде ладно...", "Не уверен в этом...", "Могло быть и лучше...", "Куда-то не туда...", "Ну, почти..."],
+      mistake: ["Хм, не лучшая идея...", "Рискованно...", "Ой...", "Это зря...", "Что-то пошло не так..."],
+      blunder: ["Ход полная хрень!", "Что ты делаешь?!", "Это провал!", "Зевок века!", "Доска в шоке!", "Мда, красиво слил..."],
     },
     adv: { w: "Преимущество белых", b: "Преимущество чёрных" },
     equalPosition: "Позиция равная",
@@ -141,25 +148,30 @@ const I18N = {
     mateIn: (n) => "mate in " + n,
     analysisCleared: "Analysis cleared",
     analysisError: "Analysis: could not load engine",
+    acc: { k: "king", q: "queen", r: "rook", b: "bishop", n: "knight", p: "pawn" },
     verdict: {
-      great: "Brilliant move",
-      good: "Good move",
-      interesting: "Interesting move",
-      inaccuracy: "Inaccuracy",
-      mistake: "Mistake",
-      blunder: "Blunder",
+      great: ["Brilliant move", "Strongest continuation", "Best move in the position", "Spot on", "Exactly right"],
+      good: ["Good move", "Solid move", "Sensible continuation", "Reasonable choice", "Well played"],
+      interesting: ["Interesting move", "A curious idea", "Unclear but playable", "There is an idea here", "Bold choice"],
+      inaccuracy: ["Inaccuracy", "Could have been more precise", "Not the strongest continuation", "Slightly worse than needed", "The position drifts a little"],
+      mistake: ["Mistake", "A noticeable loss", "That is not the way", "The advantage slips away", "The position gets worse"],
+      blunder: ["Blunder", "A real howler", "Heavy loss", "The position collapses", "A costly mistake"],
     },
     roast: {
-      great: ["Oh, brilliant!", "Wow, what a move!", "Masterful!"],
+      great: ["Oh, brilliant!", "Wow, what a move!", "Masterful!", "Beautiful!", "Take a bow!", "Now that is chess!", "Royalty only!"],
       greatCapture: [
-        (p, pieces) => "Oh, brilliantly gobbled the " + pieces[p] + "!",
-        (p, pieces) => "Yum, that " + pieces[p] + " was tasty!",
+        (c) => "Oh, brilliantly gobbled the " + c.t.acc[c.p] + "!",
+        (c) => "Yum, that " + c.t.acc[c.p] + " was tasty!",
+        (c) => "And the " + c.t.acc[c.p] + " goes straight to the bin!",
+        (c) => "Snatched the " + c.t.acc[c.p] + " right from under the nose!",
+        (c) => "Thanks for the " + c.t.acc[c.p] + "!",
+        (c) => "The " + c.t.acc[c.p] + " is simply gone!",
       ],
-      good: ["Not bad!", "Alright!", "Fine!"],
-      interesting: ["Hmm, interesting...", "Curious..."],
-      inaccuracy: ["Meh, fine I guess...", "Not sure about that..."],
-      mistake: ["Hmm, not your best idea...", "Risky..."],
-      blunder: ["That move is total crap!", "What are you doing?!"],
+      good: ["Not bad!", "Alright!", "Fine!", "Look at you!", "Keep it up!"],
+      interesting: ["Hmm, interesting...", "Curious...", "What are you plotting?", "Now it gets spicy...", "Bold..."],
+      inaccuracy: ["Meh, fine I guess...", "Not sure about that...", "Could be better...", "Slightly off target...", "Almost, but not quite..."],
+      mistake: ["Hmm, not your best idea...", "Risky...", "Uh-oh...", "That hurts a little...", "Something went wrong here..."],
+      blunder: ["That move is total crap!", "What are you doing?!", "A total disaster!", "Blunder of the century!", "The board is in shock!", "Well, that was a gift..."],
     },
     adv: { w: "White advantage", b: "Black advantage" },
     equalPosition: "Equal position",
@@ -224,22 +236,30 @@ const I18N = {
     mateIn: (n) => "Matt in " + n,
     analysisCleared: "Analyse entfernt",
     analysisError: "Analyse: Engine konnte nicht geladen werden",
+    acc: { k: "den König", q: "die Dame", r: "den Turm", b: "den Läufer", n: "den Springer", p: "den Bauern" },
     verdict: {
-      great: "Großer Zug",
-      good: "Guter Zug",
-      interesting: "Interessanter Zug",
-      inaccuracy: "Ungenauigkeit",
-      mistake: "Fehler",
-      blunder: "Schwerer Fehler",
+      great: ["Großartiger Zug", "Stärkste Fortsetzung", "Bester Zug der Stellung", "Genau ins Ziel", "Genau richtig"],
+      good: ["Guter Zug", "Solider Zug", "Vernünftige Fortsetzung", "Richtige Entscheidung", "Ordentlich gespielt"],
+      interesting: ["Interessanter Zug", "Neugierige Idee", "Unklar, aber spielbar", "Da steckt eine Idee drin", "Mutige Wahl"],
+      inaccuracy: ["Ungenauigkeit", "Etwas präziser wäre möglich", "Nicht die stärkste Fortsetzung", "Etwas schwächer als nötig", "Die Stellung verschlechtert sich leicht"],
+      mistake: ["Fehler", "Deutlicher Verlust", "So spielt man nicht", "Der Vorteil rutscht weg", "Die Stellung wird schlechter"],
+      blunder: ["Schwerer Fehler", "Grober Patzer", "Harter Verlust", "Die Stellung bricht zusammen", "Teurer Fehler"],
     },
     roast: {
-      great: ["Oh, großartig!", "Wow, was für ein Zug!", "Meisterhaft!"],
-      greatCapture: [(p, pieces) => "Oh, großartig den " + pieces[p] + " geschlagen!"],
-      good: ["Nicht schlecht!", "Okay!"],
-      interesting: ["Hmm, interessant..."],
-      inaccuracy: ["Naja, geht so...", "Bin nicht sicher..."],
-      mistake: ["Hmm, keine gute Idee...", "Riskant..."],
-      blunder: ["Der Zug ist totaler Mist!", "Was machst du da?!"],
+      great: ["Oh, großartig!", "Wow, was für ein Zug!", "Meisterhaft!", "Wunderschön!", "Hut ab!", "Königlich!", "Das ist Schach!"],
+      greatCapture: [
+        (c) => "Oh, großartig — " + c.t.acc[c.p] + " geschlagen!",
+        (c) => { const a = c.t.gender[c.p] === "f" ? "Die " : "Der "; return "Mmh, " + a + c.t.pieces[c.p] + " war lecker!"; },
+        (c) => { const a = c.t.gender[c.p] === "f" ? "die " : "der "; return "Und " + a + c.t.pieces[c.p] + " ab in die Tonne!"; },
+        (c) => "Hat " + c.t.acc[c.p] + " direkt vor der Nase weggeschnappt!",
+        (c) => "Danke für " + c.t.acc[c.p] + "!",
+        (c) => { const a = c.t.gender[c.p] === "f" ? "Die " : "Der "; return a + c.t.pieces[c.p] + " ist einfach weg!"; },
+      ],
+      good: ["Nicht schlecht!", "Passt schon!", "In Ordnung!", "Sieh an, du kannst es!", "Weiter so!"],
+      interesting: ["Hmm, interessant...", "Neugierig...", "Was planst du?", "Jetzt wird es spannend...", "Mutig..."],
+      inaccuracy: ["Naja, geht so...", "Bin nicht sicher...", "Könnte besser sein...", "Knapp daneben...", "Fast, aber nur fast..."],
+      mistake: ["Hmm, keine gute Idee...", "Riskant...", "Autsch...", "Das tut ein bisschen weh...", "Da lief etwas schief..."],
+      blunder: ["Der Zug ist totaler Mist!", "Was machst du da?!", "Totale Katastrophe!", "Patzer des Jahrhunderts!", "Das Brett ist geschockt!", "Na, das war ein Geschenk..."],
     },
     adv: { w: "Weißer Vorteil", b: "Schwarzer Vorteil" },
     equalPosition: "Ausgeglichene Stellung",
@@ -304,22 +324,30 @@ const I18N = {
     mateIn: (n) => n + " hamlede mat",
     analysisCleared: "Analiz kaldırıldı",
     analysisError: "Analiz: motor yüklenemedi",
+    acc: { k: "şahı", q: "veziri", r: "kaleyi", b: "fili", n: "atı", p: "piyonu" },
     verdict: {
-      great: "Harika hamle",
-      good: "İyi hamle",
-      interesting: "İlginç hamle",
-      inaccuracy: "Yanlışlık",
-      mistake: "Hata",
-      blunder: "Büyük hata",
+      great: ["Harika hamle", "En güçlü devam", "Konumun en iyi hamlesi", "Tam isabet", "Tam da gereken"],
+      good: ["İyi hamle", "Sağlam hamle", "Mantıklı devam", "Doğru karar", "Fena değil"],
+      interesting: ["İlginç hamle", "Merak uyandıran fikir", "Belirsiz ama oynanabilir", "Bir fikir var", "Cesur seçim"],
+      inaccuracy: ["Yanlışlık", "Daha isabetli olabilirdi", "En güçlü devam değil", "Gerektiğinden biraz zayıf", "Konum biraz bozuldu"],
+      mistake: ["Hata", "Belirgin kayıp", "Böyle oynanmaz", "Avantaj kaçıyor", "Konum kötüleşti"],
+      blunder: ["Büyük hata", "Ağır gaf", "Ciddi kayıp", "Konum çöküyor", "Pahalı hata"],
     },
     roast: {
-      great: ["Oh, harika!", "Vay canına, ne hamle!", "Ustalıkla!"],
-      greatCapture: [(p, pieces) => "Oh, " + pieces[p] + " almak harika!"],
-      good: ["Fena değil!", "Okey!"],
-      interesting: ["Hmm, ilginç...", "Merak uyandırdı..."],
-      inaccuracy: ["Eh, idare eder...", "Emin değilim..."],
-      mistake: ["Hmm, iyi fikir değil...", "Riskli..."],
-      blunder: ["Bu hamle tam bir çöp!", "Ne yapıyorsun?!"],
+      great: ["Oh, harika!", "Vay canına, ne hamle!", "Ustalıkla!", "Çok güzel!", "Şapka çıkarıyorum!", "Şahane!", "İşte satranç bu!"],
+      greatCapture: [
+        (c) => "Oh, " + c.t.acc[c.p] + " almak harika!",
+        (c) => "Mmm, o " + c.t.pieces[c.p] + " çok lezzetliydi!",
+        (c) => "Ve " + c.t.pieces[c.p] + " çöpe gitti!",
+        (c) => "Burnunun dibinden " + c.t.acc[c.p] + " kaptı!",
+        (c) => c.t.acc[c.p] + " için teşekkürler!",
+        (c) => "Ve " + c.t.pieces[c.p] + " bir anda yok oldu!",
+      ],
+      good: ["Fena değil!", "Okey!", "İdare eder!", "Bak sen, yapabiliyorsun!", "Böyle devam!"],
+      interesting: ["Hmm, ilginç...", "Merak uyandırdı...", "Ne planlıyorsun?", "Şimdi işler kızışıyor...", "Cesur..."],
+      inaccuracy: ["Eh, idare eder...", "Emin değilim...", "Daha iyi olabilirdi...", "Hedefi biraz şaştı...", "Neredeyse, ama değil..."],
+      mistake: ["Hmm, iyi fikir değil...", "Riskli...", "Eyvah...", "Bu biraz can yakar...", "Burada bir şeyler ters gitti..."],
+      blunder: ["Bu hamle tam bir çöp!", "Ne yapıyorsun?!", "Tam bir felaket!", "Yüzyılın gafı!", "Tahta şokta!", "Eh, bu bir hediyeydi..."],
     },
     adv: { w: "Beyaz avantaj", b: "Siyah avantaj" },
     equalPosition: "Konum dengede",
@@ -778,15 +806,17 @@ function speak(el, text) {
   setTimeout(() => { el.textContent = text; }, 60);
 }
 
-// Банк фраз роаста: случайная фраза без повтора подряд.
-const _lastRoast = {};
-function roastPhrase(bank, key, ...args) {
+// Банк фраз вердикта: случайная фраза без повтора подряд. Элемент — строка или
+// функция от контекста { p, t }: p — взятая фигура (или undefined), t — словарь
+// языка. Один и тот же механизм у обычного анализа и роаста.
+const _lastPhrase = {};
+function phraseFrom(bank, key, ctx) {
   const arr = Array.isArray(bank) && bank.length ? bank : [bank];
   let i = Math.floor(Math.random() * arr.length);
-  if (arr.length > 1 && i === _lastRoast[key]) i = (i + 1) % arr.length;
-  _lastRoast[key] = i;
+  if (arr.length > 1 && i === _lastPhrase[key]) i = (i + 1) % arr.length;
+  _lastPhrase[key] = i;
   const phrase = arr[i];
-  return typeof phrase === "function" ? phrase(...args) : phrase;
+  return typeof phrase === "function" ? phrase(ctx) : phrase;
 }
 
 // --- Звуки ходов -------------------------------------------------------------
@@ -1608,6 +1638,9 @@ class ChessboardElement extends HTMLElement {
     if (!this.isConnected || this._variant || this._idx !== idx || !prevR) return;
     const t = I18N[this.lang] || I18N.ru;
     const verdict = this._verdictFor(actualUci, prevR, curR);
+    // Контекст для фраз-функций: взятая фигура и словарь языка (в нём — названия
+    // фигур, падежи и род, чтобы «съел пешку» и «пешка была вкусная» сходились).
+    const ctx = { p: move.captured, t };
     let vText;
     if (this._roast) {
       // Банк фраз роаста: «great» со взятием — отдельный набор. Обычный вердикт —
@@ -1616,9 +1649,9 @@ class ChessboardElement extends HTMLElement {
         verdict === "great" && move.captured
           ? t.roast.greatCapture
           : t.roast[verdict] || t.verdict[verdict];
-      vText = roastPhrase(bank, "roast:" + verdict + (move.captured ? ":cap" : ""), move.captured);
+      vText = phraseFrom(bank, "roast:" + verdict + (move.captured ? ":cap" : ""), ctx);
     } else {
-      vText = t.verdict[verdict];
+      vText = phraseFrom(t.verdict[verdict], "verdict:" + verdict, ctx);
     }
     const curCp = curR ? -scoreToCp(curR) : scoreToCp(prevR);
     // Вердикт — в polite-регион: NVDA сначала дочитывает ход (assertive _live),

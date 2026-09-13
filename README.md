@@ -15,7 +15,7 @@ Local:
 Or from CDN (pinned to a tag):
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.6.3/chessjax.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.8.0/chessjax.js"></script>
 ```
 
 ## Usage
@@ -124,9 +124,16 @@ advantage. The tone is a 50-millisecond blip, not a note: it fires on every move
 of a game review. **Escape** clears the highlight. Disable tones with
 `tone="off"` (only the tone) or `sound="off"` (entire audio subsystem).
 
+Both the plain and the roast verdicts are drawn from a phrase bank — five or more
+wordings per verdict per language, picked at random without repeating the
+previous one, so a reviewed game does not sound like the same three lines on a
+loop. Captures in roast mode have their own lines, with the piece named in the
+right case (Russian: «прекрасно съел ферзя», «пешка отправилась в утиль»). The
+banks live in `I18N` (exported) next to the rest of the dictionary.
+
 **Roast mode** — hold **A** for 2 seconds: same analysis, informal verdicts
-("Oh, beautiful!", "That move is complete nonsense!"). Turn on analysis if it
-was off. Hold again to disable.
+("Oh, brilliant!", "That move is total crap!"). Turn on analysis if it was off.
+Hold again to disable.
 
 ## Examples
 

@@ -95,8 +95,37 @@ async function waitFor(pred, timeout = 40000) {
   }
   return false;
 }
-const VERDICT = /Прекрасный ход|Хороший ход|Интересный ход|Неточность|Ошибка|Грубая ошибка/;
-const ROAST = /Ооо|прекрасно съел|Ням|утиль|Вау, вот это ход|Мастерски|Красота|Неплохо|Норм|Сойдёт|О, интересно|Хм, любопытно|Что-то задумал|Так себе|Не уверен|лучше|не лучшая идея|Рискованно|Ой\.\.\.|полная хрень|Что ты делаешь|Это провал/;
+// Банки фраз живут в словаре (I18N.ru), и правки текста не должны ломать тест:
+// вытаскиваем все фразы из самого модуля и собираем из них регулярку. Фразы-функции
+// вызываем с образцом контекста { p, t } — как это делает доска при взятии.
+const BANKS = await page.evaluate(async () => {
+  const m = await import(new URL("../chessjax.js", location.href).href);
+  const t = m.I18N.ru;
+  // Фразу-функцию зовём для каждой фигуры: текст зависит от взятой фигуры
+  // («пешка отправилась в утиль» / «ферзь отправился в утиль»).
+  const flatten = (bank) =>
+    (Array.isArray(bank) ? bank : [bank])
+      .flatMap((entry) => {
+        if (typeof entry !== "function") return [entry];
+        return ["k", "q", "r", "b", "n", "p"].map((p) => {
+          try {
+            return entry({ p, t });
+          } catch {
+            return null;
+          }
+        });
+      })
+      .filter((s) => typeof s === "string" && s);
+  return {
+    verdict: Object.values(t.verdict).flatMap(flatten),
+    roast: Object.values(t.roast).flatMap(flatten),
+  };
+});
+const anyOf = (phrases) =>
+  new RegExp(phrases.map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"));
+const VERDICT = anyOf(BANKS.verdict);
+const ROAST = anyOf(BANKS.roast);
+console.log(`фраз в словаре: вердиктов ${BANKS.verdict.length}, роаста ${BANKS.roast.length}`);
 
 // B: лучший ход в текущей позиции + подсветка 2 клеток + a11y-пометка.
 {
