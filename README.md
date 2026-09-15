@@ -15,7 +15,7 @@ Local:
 Or from CDN (pinned to a tag):
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.8.0/chessjax.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.8.1/chessjax.js"></script>
 ```
 
 ## Usage
@@ -150,10 +150,15 @@ files and no network requests — and is `aria-hidden`: the screen reader reads 
 cell's `aria-label`, never the picture.
 
 The board styles itself: on first render `chessjax.js` injects one `<style>` with
-rounded corners, a drop shadow, coordinates (drawn by CSS from `data-file` /
-`data-rank` — they are not in the DOM) and the piece size. Square colours and the
-piece colours stay yours: a page rule with higher specificity, e.g.
-`.preview .chessjax-cell.square-dark`, overrides the defaults.
+the 8 × 8 grid, the square size, rounded corners, a drop shadow, coordinates
+(drawn by CSS from `data-file` / `data-rank` — they are not in the DOM), the
+piece size and the fullscreen layout. The page needs no stylesheet of its own:
+the tag plus the script is the whole integration (`test-bare.html` is exactly
+that, and `test-dom.mjs` keeps it working). Square colours and the piece colours
+stay yours: a page rule with higher specificity, e.g.
+`.preview .chessjax-cell.square-dark`, overrides the defaults. The square side is
+the CSS variable `--chessjax-square` (default `52px`); the grid reads the same
+variable, so the board scales as one piece.
 
 ## Tests
 

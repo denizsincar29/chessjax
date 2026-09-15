@@ -597,19 +597,43 @@ export function renderBoard(container, fen, opts = {}) {
 // инструментов», имя роли переопределено: aria-roledescription он произносит
 // вместо роли, а aria-label даёт доске имя для списка элементов.
 // --- Стили -------------------------------------------------------------------
-// chessjax самодостаточен: странице не нужно подключать его тему, чтобы фигуры
-// и координаты выглядели правильно. Один <style> на документ, специфичность
-// низкая — тема страницы (например .preview .chessjax-cell.square-dark)
-// переопределяет цвета своими правилами. Контраст координат привязан к
-// штатной паре square-dark/square-light: если страница красит клетки иначе,
-// координаты могут оказаться малоконтрастными.
+// chessjax самодостаточен: странице достаточно тега <chessjax-board fen="…">,
+// чтобы получить готовую доску — сетку, клетки, фигуры, координаты, полный
+// экран. Раньше здесь была только фигура с координатами, а сетка 8×8 жила в
+// chessjax/style.css — теме демо-страницы, которую приходилось копировать
+// каждому, кто вставлял доску; забыл скопировать — получил столбик фигур
+// вместо позиции (так и вышло в облаке mdcloud). Один <style> на документ,
+// специфичность низкая — тема страницы (например
+// .preview .chessjax-cell.square-dark) переопределяет цвета и размер своими
+// правилами. Сторона клетки — переменная --chessjax-square (по умолчанию 52px),
+// её же читает сетка, так что доска масштабируется целиком.
+// Контраст координат привязан к штатной паре square-dark/square-light: если
+// страница красит клетки иначе, координаты могут оказаться малоконтрастными.
 const BOARD_CSS = `
 .chessjax-board {
+  display: grid;
+  grid-template-columns: repeat(8, var(--chessjax-square, 52px));
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
 }
-.chessjax-cell { position: relative; }
+.chessjax-cell {
+  position: relative;
+  width: var(--chessjax-square, 52px);
+  height: var(--chessjax-square, 52px);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+}
+/* Цвета клеток — умолчание; страница вправе перекрасить их своими правилами. */
+.chessjax-cell.square-dark { background: #769656; }
+.chessjax-cell.square-light { background: #eeeed2; }
+.chessjax-cell.piece-w { color: #fff; text-shadow: 0 0 2px #000; }
+.chessjax-cell.piece-b { color: #000; text-shadow: 0 0 2px #fff; }
+.chessjax-cell.variant-highlight { box-shadow: inset 0 0 0 3px #f59e0b; }
+.chessjax-cell.analysis-move { box-shadow: inset 0 0 0 3px #3b82f6; }
 /* Фигура занимает почти всю клетку; drop-shadow даёт объём, из-за которого
    белые фигуры не сливаются со светлой клеткой. */
 .chessjax-piece {
@@ -637,6 +661,62 @@ const BOARD_CSS = `
 .chessjax-cell.square-dark.coord-rank::before { color: #eeeed2; }
 .chessjax-cell.square-light.coord-file::after,
 .chessjax-cell.square-light.coord-rank::before { color: #769656; }
+/* Строка с положением, кнопки и живая область — тоже доскино: странице не
+   должно быть дела до того, как они разложены. */
+.chessjax-summary { font-size: 0.9rem; max-width: 560px; }
+.chessjax-controls { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+.chessjax-btn { min-width: 44px; }
+.chessjax-btn:disabled { opacity: 0.4; cursor: default; }
+.chessjax-live { min-height: 1.2em; margin: 0.4rem 0 0; font-size: 0.9rem; }
+/* У подсказки страница вправе нарисовать свою полосу слева — цвета здесь не
+   трогаем, только место. */
+.chessjax-help {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  max-width: 560px;
+}
+.chessjax-error {
+  font-size: 0.9rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+}
+/* Полноэкранный режим (клавиша F или кнопка ⛶ под доской): доска растягивается
+   на весь экран, фигуры увеличиваются. Контент выравниваем по верху, а не по
+   центру: при центрировании переполнение режет и верх, и низ — строки с инфой
+   (ход/анализ) под кнопками уходят за экран. */
+chessjax-board:fullscreen {
+  background: #14181c;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: auto;
+}
+chessjax-board:fullscreen .chessjax-board {
+  width: min(64vh, 92vw);
+  height: min(64vh, 92vw);
+  margin: 0 auto;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  border-width: 2px;
+}
+chessjax-board:fullscreen .chessjax-cell {
+  width: 100%;
+  height: 100%;
+  font-size: min(5vh, 5vw);
+}
+chessjax-board:fullscreen .chessjax-summary,
+chessjax-board:fullscreen .chessjax-live,
+chessjax-board:fullscreen .chessjax-help {
+  max-width: min(86vh, 92vw);
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  font-size: 1.1rem;
+}
+chessjax-board:fullscreen .chessjax-controls { justify-content: center; }
+chessjax-board:fullscreen .chessjax-btn { min-width: 56px; min-height: 48px; font-size: 1.4rem; }
 `;
 
 function ensureBoardStyles() {

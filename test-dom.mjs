@@ -500,6 +500,40 @@ async function openPage(path) {
   await page.close();
 }
 
+// --- test-bare.html: страница без своей темы ---------------------------------
+// Доска самодостаточна: тег плюс chessjax.js — и всё. Сетка 8×8 и сторона
+// клетки обязаны прийти из самого chessjax: раньше они жили в его style.css,
+// который копировала каждая страница, и та, что не скопировала (облако
+// mdcloud), показывала партию столбиком фигур.
+{
+  const { page, errors } = await openPage("/test-bare.html");
+  const bare = await page.evaluate(() => {
+    const grid = document.querySelector(".chessjax-board");
+    const cell = document.querySelector(".chessjax-cell");
+    const piece = document.querySelector(".chessjax-piece");
+    const box = (n) => (n ? { w: Math.round(n.getBoundingClientRect().width), h: Math.round(n.getBoundingClientRect().height) } : null);
+    return {
+      links: document.querySelectorAll('link[rel="stylesheet"]').length,
+      cells: document.querySelectorAll(".chessjax-cell").length,
+      display: grid ? getComputedStyle(grid).display : null,
+      cols: grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length : 0,
+      cell: box(cell),
+      piece: box(piece),
+      summary: !!document.querySelector(".chessjax-summary"),
+    };
+  });
+  check("голая страница: своей темы у страницы нет", bare.links === 0, "links=" + bare.links);
+  check("голая страница: доска — сетка 8×8 из 64 клеток, а не столбик",
+    bare.display === "grid" && bare.cols === 8 && bare.cells === 64, JSON.stringify(bare));
+  check("голая страница: клетка 52×52, фигура вписана в неё",
+    !!bare.cell && bare.cell.w === 52 && bare.cell.h === 52 &&
+    !!bare.piece && Math.abs(bare.piece.w / bare.cell.w - 0.92) < 0.05,
+    JSON.stringify({ cell: bare.cell, piece: bare.piece }));
+  check("голая страница: строка с положением нарисована", bare.summary);
+  check("голая страница: нет pageerrors", errors.length === 0, errors.join(" | "));
+  await page.close();
+}
+
 await browser.close();
 console.log(failed === 0 ? "Все DOM-проверки прошли." : "Провалов: " + failed);
 process.exit(failed === 0 ? 0 : 1);
