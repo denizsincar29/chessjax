@@ -1,6 +1,6 @@
 {
   "name": "chessjax",
-  "version": "0.8.9",
+  "version": "0.8.10",
   "description": "JS library to view chessboards on webpages and read them using screenreaders",
   "type": "module",
   "main": "chessjax.js",
@@ -9,6 +9,9 @@
     "vendor/chess.js"
   ],
   "license": "MIT",
+  "scripts": {
+    "build": "node build-inline.mjs"
+  },
   "dependencies": {
     "chess.js": "0.13.4"
   }

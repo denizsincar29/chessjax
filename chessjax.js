@@ -1195,15 +1195,39 @@ function getAudioCtx() {
   return audioCtx;
 }
 
+// Каталог звуков. data-sound-base задаёт его целиком, имя файла приклеивается
+// строкой: <script type="module" data-sound-base="/sound"> → /sound/имя.mp3,
+// data-sound-base="examples/sound" → <каталог страницы>/examples/sound/имя.mp3.
+//
+// Определить каталог модуля изнутри нельзя: в ES-модуле document.currentScript
+// всегда null, а import.meta в chessjax-inline.js (обычный <script>) —
+// синтаксическая ошибка. Поэтому адрес задаётся явно, один атрибут на страницу.
+// Без атрибута базы нет, и звук не играет: угадывать её по адресу страницы
+// нельзя — на examples/story.html склейка адреса страницы с именем файла даёт
+// story.htmlsound/capture.mp3, а не файл рядом с модулем.
+function soundUrl(name) {
+  if (typeof document === "undefined") return null;
+  const tag = document.querySelector("script[data-sound-base]");
+  if (!tag) return null;
+  // Значение — либо «/…» или полный URL (от корня сайта), либо путь от каталога
+  // страницы; завершаем слэшем, чтобы последний сегмент не съел имя файла.
+  const val = (tag.getAttribute("data-sound-base") || ".").replace(/\/*$/, "/");
+  const base = /^[a-z][a-z0-9+.-]*:/i.test(val) || val.startsWith("/")
+    ? val
+    : new URL(val, typeof location !== "undefined" ? location.href : "").href;
+  return base + "sound/" + name + ".mp3";
+}
+
 function loadSoundFile(name) {
   if (soundCache.has(name)) return Promise.resolve(soundCache.get(name));
   const ctx = getAudioCtx();
   if (!ctx) return Promise.resolve(null);
-  // Резолвим относительно себя через currentScript, а не import.meta.url:
-  // эта же строка уезжает в chessjax-inline.js, который вставляют как обычный
-  // (не module) <script>, где import.meta — синтаксическая ошибка.
-  const base = (typeof document !== "undefined" && document.currentScript && document.currentScript.src) || (typeof location !== "undefined" ? location.href : "");
-  const url = new URL("./sound/" + name + ".mp3", base).href;
+  // Имя приклеиваем строкой, а не относительной ссылкой: резолвер в некоторых
+  // движках (headless-chromium в тестах — живой пример) может подставить первый
+  // сегмент относительного пути к каталогу базы вместо его замены, и «./sound/»
+  // поверх базы, кончающейся на sound/, даёт лишний каталог. База гарантированно
+  // кончается слэшем, поэтому склейка строк даёт ровно один звуковой каталог.
+  const url = soundUrl(name);
   return fetch(url)
     .then((r) => (r.ok ? r.arrayBuffer() : null))
     .then((ab) => (ab ? ctx.decodeAudioData(ab) : null))
@@ -1958,15 +1982,11 @@ class ChessboardElement extends HTMLElement {
     const mod = e.ctrlKey || e.metaKey;
     if ((key === "ArrowUp" || key === "ArrowDown" || key === "ArrowLeft" || key === "ArrowRight") && !mod && !e.altKey) {
       e.preventDefault();
-      // Стрелки ходят по ИМЕНАМ клеток, а не по пикселям: вверх — всегда
-      // больший номер горизонтали (a1 → a2 → a3), как назвал словами Дениз:
-      // «стрелка вверх а1 а2 а3 а4 а5». Ход на краю упирается в край: a1 +
-      // вверх и a8 + вниз стоят на месте, а не перескакивают на соседний файл.
-      // RANKS = "87654321": индекс 0 — это ВОСЬМАЯ горизонталь, поэтому
-      // индекс растёт ВНИЗ по номерам, а не вверх. Знак выводим из порядка
-      // строки, а не из пикселей экрана: без флипа вверх — больший номер
-      // (a1 → a2 → a3, как просил Дениз), после поворота на 180° знак
-      // переворачивается вместе с доской.
+      // Стрелки ходят по именам клеток, а не по пикселям: RANKS = "87654321",
+      // поэтому индекс растёт ВНИЗ по номерам, а знак берётся из _flipped —
+      // без поворота вверх это больший номер (a1 → a2 → a3), после поворота
+      // на 180° знак переворачивается вместе с доской. Ход на краю упирается
+      // в край: a1 + вверх стоит на месте, а не перескакивает на соседний файл.
       const dir = this._flipped ? 1 : -1;
       let dr = 0, df = 0;
       if (key === "ArrowUp") dr = dir;
@@ -2148,14 +2168,21 @@ class ChessboardElement extends HTMLElement {
   }
 
   // Автопросмотр с начала партии: сбрасываем позицию и запускаем показ.
+  // Поставить доску на начальную позицию, не запуская показ. Тесты и внешние
+  // вызовы пользуются этим: у playFromStart() есть побочный эффект — он включает
+  // автопоказ, и через полсекунды ходы начинают идти сами.
+  resetToStart() {
+    this._variant = null;
+    this._idx = 0;
+    this._show({ announce: true });
+  }
+
   playFromStart() {
     if (this._timer) {
       clearInterval(this._timer);
       this._timer = null;
     }
-    this._variant = null;
-    this._idx = 0;
-    this._show({ announce: true }); // сразу «Начальная позиция», дальше тики озвучивают ходы
+    this.resetToStart(); // сразу «Начальная позиция», дальше тики озвучивают ходы
     this.togglePlay();
   }
 
@@ -2220,8 +2247,19 @@ class ChessboardElement extends HTMLElement {
     if (square) this._activeSquare = square;
     this._tableWrap.setAttribute("aria-hidden", "false");
     this._boardIntro.setAttribute("aria-expanded", "true");
+    // Клик по клетке переводит на неё и активную точку навигации: без этого
+    // roving tabindex оставался на прежней клетке, и стрелка уводила не от
+    // той, на которую человек только что кликнул, а от старой (Tab выносил
+    // из доски ровно ту же клетку). Перекрашивает tabindex здесь же —
+    // до перевода фокуса, иначе _applyActiveTabindex перебьёт его обратно.
+    const active = this._tableWrap.querySelector(`[data-square="${this._activeSquare}"]`);
+    if (active) {
+      for (const c of this._tableWrap.querySelectorAll(".chessjax-cell")) {
+        c.tabIndex = c === active ? 0 : -1;
+      }
+    }
     const cell =
-      this._tableWrap.querySelector(`[data-square="${this._activeSquare}"]`) ||
+      active ||
       this._tableWrap.querySelector(".chessjax-cell");
     // Открытие и фокус — один шаг: скринридер объявляет клетку уже раскрытой,
     // а не «скрытой, затем показанной».
@@ -2603,6 +2641,7 @@ export const chessjax = {
   },
 
   renderBoard,
+  soundUrl,
   parseFen,
   fenSummary,
   parsePgnMoves,

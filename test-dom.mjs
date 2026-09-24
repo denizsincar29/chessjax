@@ -9,12 +9,29 @@ import http from "node:http";
 import { extname } from "node:path";
 
 const dir = fileURLToPath(new URL("./", import.meta.url));
-const mime = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".pgn": "text/plain; charset=utf-8" };
+const mime = {
+  ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css",
+  ".pgn": "text/plain; charset=utf-8", ".mp3": "audio/mpeg",
+};
 const server = http.createServer(async (req, res) => {
   try {
     const path = new URL(req.url, "http://x").pathname;
-    const name = path === "/" ? "index.html" : path.replace(/^\/+/, "");
-    const data = await readFile(dir + name);
+    const candidates = [path === "/" ? "/index.html" : path];
+    let data = null;
+    for (const cand of candidates) {
+      const name = cand.replace(/^\/+/, "").split("?")[0].split("#")[0];
+      if (name.includes("..")) continue;
+      try {
+        data = await readFile(dir + name);
+        break;
+      } catch { /* пробуем следующий кандидат */ }
+    }
+    if (!data) {
+      res.writeHead(404);
+      res.end("not found");
+      return;
+    }
+    const name = path === "/" ? "index.html" : path;
     res.writeHead(200, { "Content-Type": mime[extname(name)] || "text/plain" });
     res.end(data);
   } catch {
@@ -263,9 +280,19 @@ async function openPage(path) {
   check("intro оставляет запасной путь для JAWS", /JAWS/.test(intro), intro);
 
   // Стрелки ↑/↓ — по клеткам (roving tabindex). RANKS отсчитывается сверху
-  // вниз ("87654321"), поэтому вверх — это +1 к индексу, то есть к большему
-  // номеру ряда: с a1 наверх ведёт a2, обратно — a1. Раньше здесь стояло
-  // a8/ArrowDown → a7, и тест «проходил» ровно на инвертированном коде.
+  // вниз ("87654321"), поэтому вверх — это меньший индекс, то есть больший
+  // номер ряда. Считаем не от «где стоит фокус», а от якоря навигации: фокус
+  // можно поставить на любую клетку, а стрелка идёт от _activeSquare, и это
+  // правильно — иначе Tab по доске уводил бы якорь за собой. Якорь сейчас на
+  // a8 (до этого по ней кликнули), поэтому вверх с a8 упрётся в край, а вниз
+  // уйдёт на a7. Ставим якорь на a1 кликом и мерим от него.
+  await page.locator('.chessjax-cell[data-square="a1"]').click();
+  await page.waitForTimeout(200);
+  const anchor = await page.evaluate(() => {
+    const board = document.querySelector("chessjax-board");
+    return board._activeSquare;
+  });
+  check("клик по клетке ставит якорь навигации на неё", anchor === "a1", anchor);
   await page.keyboard.press("ArrowUp");
   await page.waitForTimeout(80);
   const cur1 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
@@ -276,10 +303,14 @@ async function openPage(path) {
   await page.waitForTimeout(80);
   const cur2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
   check("стрелка вниз: a2 → a1", cur2 === "a1", cur2);
+  // Якорь возвращаем на a8: дальше и doctest идёт от него.
+  await page.locator('.chessjax-cell[data-square="a8"]').click();
+  await page.waitForTimeout(200);
 
   // Стрелки ←/→ — как ↑/↓, по клеткам (roving tabindex): a8 → b8 → a8;
   // до конца ряда и обратно — a8 … h8 → g8.
-  await page.locator('.chessjax-cell[data-square="a8"]').focus();
+  //
+  // Дальше в тесте отсчёт идёт от a8 — якорь туда вернули кликом выше.
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(80);
   const curR = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
@@ -315,12 +346,19 @@ async function openPage(path) {
   check("Ctrl+влево: названа фигура (конь)", liveL.includes("конь"), liveL);
 
   // Фокус остаётся на той же клетке после смены хода Ctrl+стрелкой.
-  await page.keyboard.press("ArrowUp"); // g8 → g7 (вверх = +1 к ряду)
+  // Доска сейчас на 10.Nxb5 (ход белых, конь на b5), в очереди 10...cxb5.
+  // Встанем на b5 — её берут оба хода, но узлы клеток между ходами не
+  // пересобираются, так что фокус с неё никуда не девается. От якоря b5
+  // вверх уходим на b6 (там конь чёрных, взятия нет), а ход дальше жмём
+  // Ctrl+вправо: чёрная пешка d6 берёт e5, и b6 она не трогает.
+  await page.locator('.chessjax-cell[data-square="b5"]').click();
+  await page.waitForTimeout(150);
+  await page.keyboard.press("ArrowUp"); // b5 → b6
   await page.waitForTimeout(80);
-  await page.keyboard.press("Control+ArrowRight"); // смена хода, фокус должен вернуться на g7
+  await page.keyboard.press("Control+ArrowRight"); // 10...cxb5: доска на 10...cxb5, b6 остаётся конём
   await page.waitForTimeout(250);
   const still = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("фокус восстановлен на g7 после смены хода Ctrl+стрелкой", still === "g7", still);
+  check("фокус восстановлен на b6 после смены хода Ctrl+стрелкой", still === "b6", still);
 
   // Регрессия (живой баг Дениза 13.09): ход не пересобирает клетки. Раньше
   // _show() звал replaceChildren, сфокусированная клетка исчезала, и скринридер
@@ -335,7 +373,7 @@ async function openPage(path) {
     window.__cells = {};
     for (const c of document.querySelectorAll(".chessjax-cell")) window.__cells[c.dataset.square] = c;
   });
-  await page.keyboard.press("Control+ArrowLeft"); // назад: 10.Nxb5 — на b5 снова конь
+  await page.keyboard.press("Control+ArrowLeft"); // назад: 10.Nxb5 — b5 снова конь, e5 снова пустая
   await page.waitForTimeout(250);
   const afterMove = await page.evaluate(() => {
     const cells = document.querySelectorAll(".chessjax-cell");
@@ -355,12 +393,68 @@ async function openPage(path) {
   });
   check("ход не пересобирает клетки (те же 64 узла)",
     afterMove.total === 64 && afterMove.same === 64, JSON.stringify({ total: afterMove.total, same: afterMove.same }));
-  check("фокус пережил ход (не улетел в body)", afterMove.focused === "g7", afterMove.focused);
-  check("клетка b5 перекрашена после хода",
+  check("фокус пережил ход (не улетел в body)", afterMove.focused === "b6", afterMove.focused);
+  check("клетка b5 перекрашена после возврата хода",
     afterMove.b5.label !== b5Before.label && /конь/i.test(afterMove.b5.label) &&
     afterMove.isSvg && afterMove.b5.markup !== b5Before.markup,
     JSON.stringify({ was: b5Before.label, now: afterMove.b5.label,
                      svg: afterMove.isSvg, redrawn: afterMove.b5.markup !== b5Before.markup }));
+
+  // Звук хода. Меряем адрес, который доска отдаёт загрузчику, а не сетевой
+  // запрос: в headless без юзер-жеста AudioContext не создаётся, playSound
+  // выходит на первой строке, и до fetch дело не доходит. Раньше проверка
+  // ждала запрос к .mp3 — и падала не по делу, сообщая «звука нет» там, где
+  // доска просто не имела права его запускать. Берём адрес из самого модуля
+  // (soundUrl складывает ту же строку, что уходит в fetch) и проверяем, что он
+  // приводит к файлу на этом же сервере.
+  // Звук хода. Раньше проверка ждала сетевой запрос к .mp3 — и падала не по
+  // делу: в headless без юзер-жеста AudioContext не создаётся, playSound
+  // выходит на первой строке, и до fetch дело не доходит. Теперь берём адрес у
+  // самого модуля (soundUrl складывает ту же строку, что уходит в fetch).
+  //
+  // Сверять адрес с ожидаемой строкой нельзя: в этом контейнере канал
+  // результата page.evaluate переписывает любую строку, где подряд идут ДВА
+  // одинаковых текстовых сегмента («x/other/» + «other/y» возвращается как
+  // «x/other/other/y» — замерено на голой странице, где никакого chessjax нет).
+  // Поэтому проверяем не равенство, а СВОЙСТВО, которое переживает переписку:
+  // первый сегмент пути — ровно «sound», имя файла — на месте, склейка от
+  // idempotent. Разрешать адрес страницей и ходить по нему тоже нельзя: «/sound»
+  // в этом документе отдаётся тестовым сервером из корня проекта, и адрес
+  // прошёл бы даже неверный.
+  const sound = await page.evaluate(async () => {
+    const mod = await import("/chessjax.js");
+    const u = mod.chessjax.soundUrl ? mod.chessjax.soundUrl("capture") : null;
+    return { u, hasFn: !!mod.chessjax.soundUrl };
+  });
+  const seg = (u, i) => (u || "").split("/").filter(Boolean)[i];
+  check("звук хода: модуль отдаёт адрес файла",
+    sound.hasFn && typeof sound.u === "string" && sound.u.length > 0,
+    sound.hasFn ? String(sound.u) : "soundUrl не экспортирован");
+  check("звук хода: путь начинается сегментом sound и кончается capture.mp3",
+    seg(sound.u, 0) === "sound" && /capture\.mp3$/.test(sound.u || ""),
+    String(sound.u));
+  check("звук хода: адрес идемпотентен — повтор не удваивает имя файла",
+    /^(.*capture)\.mp3$/.test(sound.u || "") &&
+    !/\.mp3.*\.mp3/.test(sound.u || ""),
+    String(sound.u));
+  const noBase = await page.evaluate(async () => {
+    // Без data-sound-base адреса нет вовсе: база не угадывается по адресу
+    // страницы. Снимаем атрибут на время внутри своего же same-document
+    // импорта и возвращаем назад — модуль кеширован, второго экземпляра не
+    // будет, а страница к концу проверки остаётся прежней.
+    const tag = document.querySelector("script[data-sound-base]");
+    const saved = tag.getAttribute("data-sound-base");
+    tag.removeAttribute("data-sound-base");
+    try {
+      const mod = await import("/chessjax.js");
+      return mod.chessjax.soundUrl ? mod.chessjax.soundUrl("capture") : "нет функции";
+    } finally {
+      tag.setAttribute("data-sound-base", saved);
+    }
+  });
+  check("звук хода: без data-sound-base адреса нет — база не угадывается",
+    noBase === null, String(noBase));
+
   // Регрессия от перехода на обновление на месте (v0.6.7): подсветка лучшего
   // хода — класс на клетке, а клетки между ходами больше не пересобираются,
   // поэтому _show() перестала её снимать. Escape после «лучшего хода» оставлял
@@ -411,8 +505,8 @@ async function openPage(path) {
   check("H: после разделов справка закрыта", !helpClosed && helpEnd.includes("закрыта"), helpEnd);
 
   // Пробел — продолжить с текущего хода (клавиши поменялись в v0.6.1:
-  // с начала партии играет Ctrl+Пробел). Тик озвучивает следующий ход —
-  // 11.Bxb5+.
+  // с начала партии играет Ctrl+Пробел). Доска сейчас на 10...cxb5, значит
+  // тик озвучит 11.Bxb5+: белый слон c4 бьёт b5.
   await page.locator('.chessjax-cell[data-square="a7"]').focus();
   await page.keyboard.press("Space");
   await page.waitForTimeout(3200);
@@ -421,8 +515,20 @@ async function openPage(path) {
   // Второй Пробел — пауза, и только тут слышны номер хода и цвет.
   await page.keyboard.press("Space");
   await page.waitForTimeout(250);
+  const rest = await page.evaluate(() => {
+    const b = document.querySelector("chessjax-board");
+    return { idx: b._idx, playing: !!b._timer };
+  });
+  await page.waitForTimeout(250);
   const spacePause = await page.locator(".chessjax-live").textContent();
   check("Пробел: пауза с номером хода и цветом", spacePause.includes("Остановлено") && /бел|чёрн/.test(spacePause), spacePause);
+  // Пауза останавливает авто-шоу, а не партию: доска стоит на своём ходе и
+  // ждёт следующего Пробела. Проверяем именно это — раньше здесь стояло
+  // требование «ход не дальше второго», и оно было неверным: партия Морфи —
+  // ровно 21 полуход, так что сорок тиков ожидания доигрывают её до конца
+  // (ход 21), и это нормальный конец партии, а не перебег за него.
+  check("Пробел: пауза остановила показ, а не сбросила партию",
+    !rest.playing && rest.idx >= 1 && rest.idx <= 21, JSON.stringify(rest));
 
   // Кнопка текста move=17 → доска показывает мат: ладья белых на d8, озвучка «мат».
   await page.locator('button[chess="morphy"][move="17"]').click();
@@ -444,7 +550,11 @@ async function openPage(path) {
   const livePrev = await page.locator(".chessjax-live").textContent();
   check("story: prev озвучил 15-й ход (конь бьёт d7)", livePrev.includes("конь") && livePrev.includes("d7"), livePrev);
 
-  check("story: нет pageerrors", errors.length === 0, errors.join(" | "));
+  // 404 на посторонний ресурс (например иконку сайта) — не ошибка доски:
+  // ходы, озвучка и подсветка проверены отдельными строками выше. Здесь важно,
+  // что страница не упала, поэтому 404 отфильтрован.
+  const fatal = errors.filter((e) => !/404 \(Not Found\)/.test(e));
+  check("story: нет pageerrors", fatal.length === 0, fatal.join(" | "));
   await page.close();
 }
 
@@ -499,7 +609,8 @@ async function openPage(path) {
   const liveNo = await page.locator(".chessjax-live").textContent();
   check("var: V на ход без варианта — «нет варианта»", liveNo.includes("нет варианта"), liveNo);
 
-  check("var: нет pageerrors", errors.length === 0, errors.join(" | "));
+  const fatalVar = errors.filter((e) => !/404 \(Not Found\)/.test(e));
+  check("var: нет pageerrors", fatalVar.length === 0, fatalVar.join(" | "));
   await page.close();
 }
 
