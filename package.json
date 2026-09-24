@@ -1,6 +1,6 @@
 {
   "name": "chessjax",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "JS library to view chessboards on webpages and read them using screenreaders",
   "type": "module",
   "main": "chessjax.js",
