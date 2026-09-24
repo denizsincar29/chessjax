@@ -262,17 +262,20 @@ async function openPage(path) {
   check("intro не зовёт включать режим NVDA руками", !/режим редактирования NVDA/.test(intro), intro);
   check("intro оставляет запасной путь для JAWS", /JAWS/.test(intro), intro);
 
-  // Стрелки ↑/↓ — по клеткам (roving tabindex): a8 → a7 → a8.
-  await page.keyboard.press("ArrowDown");
-  await page.waitForTimeout(80);
-  const cur1 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("стрелка вниз: a8 → a7", cur1 === "a7", cur1);
-  const a7 = await page.locator('.chessjax-cell[data-square="a7"]').getAttribute("aria-label");
-  check("a7 озвучен (Чёрная пешка A7)", a7 === "Чёрная пешка A7", a7);
+  // Стрелки ↑/↓ — по клеткам (roving tabindex). RANKS отсчитывается сверху
+  // вниз ("87654321"), поэтому вверх — это +1 к индексу, то есть к большему
+  // номеру ряда: с a1 наверх ведёт a2, обратно — a1. Раньше здесь стояло
+  // a8/ArrowDown → a7, и тест «проходил» ровно на инвертированном коде.
   await page.keyboard.press("ArrowUp");
   await page.waitForTimeout(80);
+  const cur1 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
+  check("стрелка вверх: a1 → a2", cur1 === "a2", cur1);
+  const a2 = await page.locator('.chessjax-cell[data-square="a2"]').getAttribute("aria-label");
+  check("a2 озвучен (Белая пешка A2)", a2 === "Белая пешка A2", a2);
+  await page.keyboard.press("ArrowDown");
+  await page.waitForTimeout(80);
   const cur2 = await page.evaluate(() => document.activeElement.getAttribute("data-square"));
-  check("стрелка вверх: a7 → a8", cur2 === "a8", cur2);
+  check("стрелка вниз: a2 → a1", cur2 === "a1", cur2);
 
   // Стрелки ←/→ — как ↑/↓, по клеткам (roving tabindex): a8 → b8 → a8;
   // до конца ряда и обратно — a8 … h8 → g8.
@@ -312,7 +315,7 @@ async function openPage(path) {
   check("Ctrl+влево: названа фигура (конь)", liveL.includes("конь"), liveL);
 
   // Фокус остаётся на той же клетке после смены хода Ctrl+стрелкой.
-  await page.keyboard.press("ArrowDown"); // g8 → g7
+  await page.keyboard.press("ArrowUp"); // g8 → g7 (вверх = +1 к ряду)
   await page.waitForTimeout(80);
   await page.keyboard.press("Control+ArrowRight"); // смена хода, фокус должен вернуться на g7
   await page.waitForTimeout(250);

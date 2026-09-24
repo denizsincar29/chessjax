@@ -1146,7 +1146,7 @@ class ChessboardElement extends HTMLElement {
     this._speedMs = 2500; // интервал автопросмотра; Ctrl+↑/↓ — быстрее/медленнее
     this._helpIdx = 0; // 0 = справка закрыта; 1..N = открыт раздел
     this._variant = null; // режим варианта: {positions, idx} альтернативной линии
-    this._activeSquare = "a8"; // roving tabindex: клетка, с которой начинают навигацию стрелками
+    this._activeSquare = "a1"; // roving tabindex: клетка, с которой начинают навигацию стрелками
     this._wasFull = false; // прошлое состояние fullscreen — чтобы озвучивать только реальные переходы
     this._analysis = null; // результат анализа: {type, value, best} последнего info с pv
     this._analyzing = false; // идёт ли расчёт прямо сейчас
@@ -1204,6 +1204,10 @@ class ChessboardElement extends HTMLElement {
     this._boardIntro.tabIndex = 0;
     this._boardIntro.setAttribute("role", "region");
     this._boardIntro.setAttribute("aria-label", t.boardIntro);
+    // Состояние доски, которое читает скринридер: «свёрнуто» до Enter,
+    // «развёрнуто» после. Без него скрытая доска молчит о себе, и после
+    // Enter непонятно, что изменилось.
+    this._boardIntro.setAttribute("aria-expanded", "false");
     this._boardIntro.style.cssText =
       "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap";
     this._boardIntro.addEventListener("click", () => this._focusBoard());
@@ -1217,6 +1221,11 @@ class ChessboardElement extends HTMLElement {
 
     this._tableWrap = document.createElement("div");
     this._tableWrap.className = "chessjax-board-wrap";
+    // Доска — открываемая область, и до Enter на анонсе её клетки скрыты от
+    // скринридера совсем. Без этого обычная стрелка вниз просто читала сетку
+    // («белая пешка E2, белая пешка E7…»): роль toolbar глушит болтливость
+    // клеток, но не выкидывает их из дерева доступности.
+    this._tableWrap.setAttribute("aria-hidden", "true");
     wrap.appendChild(this._tableWrap);
 
     this._summary = document.createElement("p");
@@ -1271,8 +1280,7 @@ class ChessboardElement extends HTMLElement {
     this._tableWrap.addEventListener("click", (e) => {
       const cell = e.target && e.target.closest ? e.target.closest(".chessjax-cell") : null;
       if (!cell || !cell.dataset.square) return;
-      this._activeSquare = cell.dataset.square;
-      this._applyActiveTabindex();
+      this._focusBoard(cell.dataset.square);
     });
   }
 
@@ -1405,9 +1413,10 @@ class ChessboardElement extends HTMLElement {
     const mod = e.ctrlKey || e.metaKey;
     if ((key === "ArrowUp" || key === "ArrowDown" || key === "ArrowLeft" || key === "ArrowRight") && !mod && !e.altKey) {
       e.preventDefault();
+      // RANKS идёт сверху вниз ("87654321"), поэтому вверх — это +1 к индексу.
       let dr = 0, df = 0;
-      if (key === "ArrowUp") dr = -1;
-      else if (key === "ArrowDown") dr = 1;
+      if (key === "ArrowUp") dr = 1;
+      else if (key === "ArrowDown") dr = -1;
       else if (key === "ArrowLeft") df = -1;
       else df = 1;
       const rankIdx = RANKS.indexOf(this._activeSquare[1]);
@@ -1454,6 +1463,11 @@ class ChessboardElement extends HTMLElement {
       } else if (this._analysis || this._analyzing) {
         e.preventDefault();
         this._clearAnalysis();
+      } else {
+        // Нечего закрывать — Escape закрывает саму доску (порядок: сперва
+        // вариант и анализ, они модальнее).
+        e.preventDefault();
+        this._leaveBoard();
       }
       return;
     }
@@ -1594,11 +1608,25 @@ class ChessboardElement extends HTMLElement {
   // Вход в доску по Enter на анонсе (или клику): фокус встаёт на активную
   // клетку. С этого момента NVDA переключается в режим форм и отдаёт стрелки
   // доске — дальше _onBoardKeydown ведёт навигацию по клеткам.
-  _focusBoard() {
+  _focusBoard(square) {
+    if (square) this._activeSquare = square;
+    this._tableWrap.setAttribute("aria-hidden", "false");
+    this._boardIntro.setAttribute("aria-expanded", "true");
     const cell =
       this._tableWrap.querySelector(`[data-square="${this._activeSquare}"]`) ||
       this._tableWrap.querySelector(".chessjax-cell");
+    // Открытие и фокус — один шаг: скринридер объявляет клетку уже раскрытой,
+    // а не «скрытой, затем показанной».
     if (cell) cell.focus();
+  }
+
+  // Выход из доски по Escape: клетки снова aria-hidden, фокус возвращается на
+  // анонс — оттуда Enter открывает доску заново. Без этого Escape не делал
+  // ничего, пока не открыт вариант или анализ, а фокус оставался в клетке.
+  _leaveBoard() {
+    this._tableWrap.setAttribute("aria-hidden", "true");
+    this._boardIntro.setAttribute("aria-expanded", "false");
+    this._boardIntro.focus();
   }
 
   _applyActiveTabindex() {
