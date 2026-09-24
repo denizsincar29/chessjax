@@ -22,6 +22,12 @@ function lichessUrl(fen) {
   return "https://lichess.org/analysis/" + String(fen).trim().replace(/ /g, "_");
 }
 
+// Партия целиком: Lichess разбирает ходы из ПУТИ /analysis/pgn/<закодированный PGN>,
+// а не одну позицию. Хвостовой перевод строки в параметре не нужен — ссылка и так длинная.
+function lichessPgnUrl(pgn) {
+  return "https://lichess.org/analysis/pgn/" + encodeURIComponent(String(pgn).trim());
+}
+
 // Скачивание — тот же Blob-трюк, что и в веб-версии mdcloud: страница тут ни
 // при чём, её ничего не спрашивают, поэтому работает и на http.
 function downloadText(text, filename) {
@@ -106,6 +112,7 @@ export const I18N = {
     downloadPgn: "Скачать PGN",
     copyImage: "Скопировать позицию картинкой",
     openLichess: "Открыть в Lichess",
+    openLichessGame: "Открыть партию в Lichess",
     copied: "Скопировано",
     copyFailed: "Скопировать не удалось",
     downloading: "Скачиваю",
@@ -159,13 +166,25 @@ export const I18N = {
       "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты. Если доска ещё не слушает клавиши, нажмите Enter на её анонсе или щёлкните по доске — фокус встанет на клетку.",
       "Ходы и комментарии. Контрол и стрелки влево и вправо — предыдущий и следующий ход. Ход озвучивается фигурой и координатами, после него читается комментарий из записи партии.",
       "Воспроизведение. Пробел — продолжить с текущего хода или пауза с объявлением номера хода. Контрол и пробел — автоматический просмотр с начала партии. Контрол и стрелки вверх и вниз — быстрее и медленнее.",
-      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, лучший ход, анализ партии. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша B — лучший ход в текущей позиции: оценка и ход движка. Клавиша A — анализ партии: каждый ход с вердиктом, величина преимущества маркируется тоном, повторное нажатие — выключить. Удерживайте A две секунды — скрытый режим роаста с неформальными вердиктами. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
+      "Варианты и эта справка. Если у хода есть альтернативные ходы в скобках доллар — клавиша V их проигрывает, повторное нажатие показывает финал, клавиша эскейп возвращает в партию. Под доской: в начало, предыдущий ход, автопросмотр, следующий ход, во весь экран, лучший ход, анализ партии. Клавиша F — увеличить доску на весь экран, повторное нажатие или эскейп — вернуть. Клавиша B — лучший ход в текущей позиции: оценка и ход движка. Клавиша A — анализ партии: каждый ход с вердиктом, величина преимущества маркируется тоном, повторное нажатие — выключить. Удерживайте A две секунды — скрытый режим роаста с неформальными вердиктами. Клавиша S — статус позиции словами: чей ход, какие рокировки доступны каждой стороне, сколько превращённых пешек. Клавиша R — перевернуть доску: чёрные внизу, белые вверху, фигуры и координаты остаются читаемыми. Клавиша H — следующий раздел инструкции, после последнего она закрывается.",
     ],
     helpEnd: "Инструкция закрыта.",
     commentLabel: "Комментарий",
     variationLabel: "Вариант",
     pressV: "есть вариант — клавиша V проиграть",
     noVariation: "У этого хода нет варианта.",
+    status: "Статус позиции",
+    statusNoMove: "Ходов ещё нет",
+    canCastle: "могут рокироваться",
+    castleBoth: "в обе стороны",
+    castleShortOnly: "только в короткую",
+    castleLongOnly: "только в длинную",
+    castleNo: "не могут рокироваться",
+    promoted: (n, list) => "превращённые пешки: " + n + " — " + list,
+    noPromoted: "превращённых пешек нет",
+    flip: "Перевернуть доску",
+    flipped: "Доска перевёрнута",
+    notFlipped: "Доска в обычной ориентации",
     variationEnd: "Финал варианта",
     variationExit: "Выход из варианта",
     by: { w: "Белые", b: "Чёрные" },
@@ -207,6 +226,7 @@ export const I18N = {
     downloadPgn: "Download PGN",
     copyImage: "Copy position as image",
     openLichess: "Open in Lichess",
+    openLichessGame: "Open the game in Lichess",
     copied: "Copied",
     copyFailed: "Could not copy",
     downloading: "Downloading",
@@ -258,13 +278,25 @@ export const I18N = {
       "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates. If the board does not take keys yet, press Enter on its announcement or click the board — the focus lands on a square.",
       "Moves and comments. Control plus arrow left and right step to the previous and next move. Each move is announced with the piece and squares, followed by the comment from the game record.",
       "Playback. Space continues from the current move or pauses and announces the move number. Control plus space starts automatic playthrough from the beginning of the game. Control plus arrow up and down makes playback faster and slower.",
-      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, best move, game analysis. Press F for fullscreen, press again or escape to exit. Press B for the best move in the current position: score and the engine's move. Press A to toggle game analysis: each move with a verdict; the advantage is signaled by a tone; press again to turn off. Hold A for two seconds to enable the hidden roast mode with informal verdicts. Press H for the next help section; after the last one it closes.",
+      "Variations and this help. If a move has alternative moves in dollar brackets, press V to play them, press V again to jump to the variation end, press escape to return to the game. Below the board: restart, previous move, play, next move, fullscreen, best move, game analysis. Press F for fullscreen, press again or escape to exit. Press B for the best move in the current position: score and the engine's move. Press A to toggle game analysis: each move with a verdict; the advantage is signaled by a tone; press again to turn off. Hold A for two seconds to enable the hidden roast mode with informal verdicts. Press S for the position status in words: whose turn it is, which castling each side still has, how many promoted pawns there are. Press R to flip the board: Black at the bottom, White at the top, pieces and coordinates stay readable. Press H for the next help section; after the last one it closes.",
     ],
     helpEnd: "Help closed.",
     commentLabel: "Comment",
     variationLabel: "Variation",
     pressV: "a variation is available — press V to play it",
     noVariation: "This move has no variation.",
+    status: "Position status",
+    statusNoMove: "No moves yet",
+    canCastle: "can castle",
+    castleBoth: "both sides",
+    castleShortOnly: "kingside only",
+    castleLongOnly: "queenside only",
+    castleNo: "cannot castle",
+    promoted: (n, list) => "promoted pawns: " + n + " — " + list,
+    noPromoted: "no promoted pawns",
+    flip: "Flip board",
+    flipped: "Board flipped",
+    notFlipped: "Board in normal orientation",
     variationEnd: "Variation end",
     variationExit: "Left the variation",
     by: { w: "White", b: "Black" },
@@ -306,6 +338,7 @@ export const I18N = {
     downloadPgn: "PGN herunterladen",
     copyImage: "Stellung als Bild kopieren",
     openLichess: "In Lichess öffnen",
+    openLichessGame: "Partie in Lichess öffnen",
     copied: "Kopiert",
     copyFailed: "Kopieren fehlgeschlagen",
     downloading: "Wird heruntergeladen",
@@ -364,6 +397,18 @@ export const I18N = {
     variationLabel: "Variante",
     pressV: "eine Variante ist verfügbar — Taste V zum Abspielen",
     noVariation: "Dieser Zug hat keine Variante.",
+    status: "Stellung",
+    statusNoMove: "Noch keine Züge",
+    canCastle: "können rochieren",
+    castleBoth: "beide Seiten",
+    castleShortOnly: "nur kurz",
+    castleLongOnly: "nur lang",
+    castleNo: "können nicht rochieren",
+    promoted: (n, list) => "Umwandlungsbauern: " + n + " — " + list,
+    noPromoted: "keine Umwandlungsbauern",
+    flip: "Brett drehen",
+    flipped: "Brett gedreht",
+    notFlipped: "Brett in normaler Ausrichtung",
     variationEnd: "Varianten-Ende",
     variationExit: "Variante verlassen",
     by: { w: "Weiß", b: "Schwarz" },
@@ -405,6 +450,7 @@ export const I18N = {
     downloadPgn: "PGN'i indir",
     copyImage: "Konumu resim olarak kopyala",
     openLichess: "Lichess'te aç",
+    openLichessGame: "Partiyi Lichess'te aç",
     copied: "Kopyalandı",
     copyFailed: "Kopyalanamadı",
     downloading: "İndiriliyor",
@@ -463,6 +509,18 @@ export const I18N = {
     variationLabel: "Varyant",
     pressV: "varyant var — oynatmak için V tuşu",
     noVariation: "Bu hamlenin varyantı yok.",
+    status: "Pozisyon durumu",
+    statusNoMove: "Henüz hamle yok",
+    canCastle: "rok yapabilir",
+    castleBoth: "her iki yana",
+    castleShortOnly: "yalnız kısa",
+    castleLongOnly: "yalnız uzun",
+    castleNo: "rok yapamaz",
+    promoted: (n, list) => "terfi etmiş piyonlar: " + n + " — " + list,
+    noPromoted: "terfi etmiş piyon yok",
+    flip: "Tahtayı çevir",
+    flipped: "Tahta çevrildi",
+    notFlipped: "Tahta normal yönde",
     variationEnd: "Varyant sonu",
     variationExit: "Varyanttan çıkıldı",
     by: { w: "Beyaz", b: "Siyah" },
@@ -529,12 +587,20 @@ export function fenSummary(parsed, lang = "ru") {
 }
 
 function pluralize(noun, n, lang) {
+  // Согласование с числительным: 1 ферзь, 2 ферзя, 5 ферзей. Формы по родам
+  // не сводятся к одной паре, поэтому таблица явная.
+  const forms = {
+    "пешка": ["пешка", "пешки", "пешек"],
+    "конь": ["конь", "кони", "коней"],
+    "слон": ["слон", "слона", "слонов"],
+    "ладья": ["ладья", "ладьи", "ладей"],
+    "ферзь": ["ферзь", "ферзя", "ферзей"],
+  };
   if (lang !== "ru") return noun;
-  if (noun === "пешка") return n === 1 ? "пешка" : "пешки";
-  if (noun === "конь") return n === 1 ? "конь" : "кони";
-  if (noun === "слон") return n === 1 ? "слон" : "слоны";
-  if (noun === "ладья") return n === 1 ? "ладья" : "ладьи";
-  return noun;
+  const f = forms[noun];
+  if (!f) return noun;
+  const i = n % 100 >= 11 && n % 100 <= 14 ? 2 : n % 10 === 1 ? 0 : n % 10 >= 2 && n % 10 <= 4 ? 1 : 2;
+  return f[i];
 }
 
 // --- Движок ходов (chess.js) ------------------------------------------------
@@ -712,6 +778,20 @@ const BOARD_CSS = `
 .chessjax-board {
   display: grid;
   grid-template-columns: repeat(8, var(--chessjax-square, 52px));
+  /* Клетки лежат в DOM в порядке a8…h1 — по строкам, ряд за рядом. Поток
+     по столбцам (grid-auto-flow: column + grid-template-rows) кладёт первый
+     столбец вертикально в сетке, но порядок заливки остаётся строчным: клетка
+     попадает не в ряд, который называет её имя, а в следующий по вертикали.
+     Глазом это ровно то же, что ряд 8 внизу, — а Дениз видит координаты
+     скринридером и по атрибуту, и для него такая доска врёт. Ставим поток
+     построчно и БЕЗ реверса: тогда клетка садится в тот ряд, который называет
+     её имя, и ряд 1 оказывается внизу.
+     Раскладка — свойство визуальное: озвучка и навигация читают dataset.square
+     и от порядка клеток в DOM не зависят. Клетки с aria-hidden остаются в
+     дереве доступности ровно так же — поток этого не меняет. */
+  grid-auto-flow: row dense;
+  grid-template-rows: repeat(8, var(--chessjax-square, 52px));
+  grid-template-columns: repeat(8, var(--chessjax-square, 52px));
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
@@ -780,6 +860,16 @@ const BOARD_CSS = `
   border-radius: 6px;
   padding: 0.5rem 0.7rem;
 }
+/* Перевёрнутая доска (клавиша R или пункт меню): поворот на 180°, как если бы
+   играли за чёрных — h8 слева снизу. Порядок клеток в DOM не меняется,
+   dataset.square по-прежнему главный: озвучка и навигация те же. Крутится вся
+   сетка целиком, а содержимое клеток возвращаем обратно, чтобы фигуры и
+   координаты остались лицом к зрителю. */
+.chessjax-board.flipped { transform: rotate(180deg); }
+.chessjax-board.flipped .chessjax-cell > * { transform: rotate(180deg); }
+.chessjax-board.flipped .chessjax-cell::before,
+.chessjax-board.flipped .chessjax-cell::after { transform: rotate(180deg); }
+
 /* Полноэкранный режим (клавиша F или кнопка ⛶ под доской): доска растягивается
    на весь экран, фигуры увеличиваются. Контент выравниваем по верху, а не по
    центру: при центрировании переполнение режет и верх, и низ — строки с инфой
@@ -834,6 +924,9 @@ function renderGrid(parsed, lang, opts = {}) {
   board.setAttribute("role", "toolbar");
   board.setAttribute("aria-roledescription", t.board);
   board.setAttribute("aria-label", t.board);
+  // Ориентация — состояние доски, а не только вид: перевёрнутая ставит класс
+  // сразу при сборке, иначе первый показ после flip был бы не в ту сторону.
+  if (opts.flipped) board.classList.add("flipped");
 
   for (let r = 0; r < 8; r++) {
     const rank = RANKS[r];
@@ -985,6 +1078,72 @@ function moveSpeech(move, lang) {
   if (move.san.includes("#")) s += ", " + t.checkmate;
   else if (move.san.includes("+")) s += ", " + t.check;
   return s;
+}
+
+// Итог партии по SAN последнего хода: мат/пат называются ходом, а не позицией.
+function resultFromSan(san, lang) {
+  const t = I18N[lang] || I18N.ru;
+  if (!san) return "";
+  if (san.includes("#")) return t.checkmate;
+  return "";
+}
+
+// --- Статус позиции ----------------------------------------------------------
+// Позиция описывается не FEN, а словами, которые полезны на слух: ровно как
+// просил Дениз — рокировки по флангам, чей ход, превращённые пешки.
+// Всё считается из FEN, поэтому статус верен и для начальной позиции, и для
+// партии с доски, и для позиции из атрибута fen.
+export function positionStatus(fen, lang = "ru", move = null) {
+  const t = I18N[lang] || I18N.ru;
+  const parsed = parseFen(fen);
+  const parts = [];
+
+  // 1. Последний ход — если он есть.
+  if (move) parts.push(t.move + " " + moveSpeech(move, lang));
+
+  // 2. Итог: мат, если он есть в SAN; иначе — чей ход.
+  const mat = resultFromSan(move && move.san, lang);
+  if (mat) parts.push(mat);
+  else parts.push(t.turn(parsed.sideToMove));
+
+  // 3. Право рокировки по каждому флангу. FEN-буквы: K/k — короткая, Q/q — длинная.
+  // Формулировка одинаковая для всех четырёх случаев: «Белые могут рокироваться
+  // в обе стороны». Отдельные фразы в i18n склеивались в «могут рокироваться не
+  // могут рокироваться», поэтому ветка «не могут» — не фраза, а отсутствие прав.
+  const castling = parsed.castling || "-";
+  for (const side of ["w", "b"]) {
+    const short = castling.includes(side === "w" ? "K" : "k");
+    const long = castling.includes(side === "w" ? "Q" : "q");
+    let c;
+    if (short && long) c = t.castleBoth;
+    else if (short) c = t.castleShortOnly;
+    else if (long) c = t.castleLongOnly;
+    else c = null;
+    parts.push(c ? t.by[side] + " " + t.canCastle + " " + c : t.by[side] + " " + t.castleNo);
+  }
+
+  // 4. Превращённые пешки. Пешек у стороны не больше восьми, поэтому всё, что
+  // сверх двух (ферзь+ладья, слон, конь) в позиции, — результат превращения.
+  for (const side of ["w", "b"]) {
+    const counts = { q: 0, r: 0, b: 0, n: 0 };
+    for (const [, piece] of parsed.board) {
+      if (piece.color === side && piece.piece in counts) counts[piece.piece]++;
+    }
+    const extra = Object.keys(counts).reduce((sum, k) => sum + Math.max(0, counts[k] - 2), 0);
+    if (!extra) continue;
+    // Разбивка по тому, во что превратили: 2 ферзя и 1 конь.
+    const list = Object.keys(counts)
+      .map((k) => {
+        const n = Math.max(0, counts[k] - 2);
+        return n ? n + " " + pluralize(t.pieces[k], n, lang) : "";
+      })
+      .filter(Boolean)
+      .join(", ");
+    parts.push(t.by[side] + ": " + t.promoted(extra, list));
+  }
+
+  parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+  return parts.join(". ") + ".";
 }
 
 function speak(el, text) {
@@ -1460,11 +1619,23 @@ class ChessboardElement extends HTMLElement {
         },
       },
       { separator: true },
+      { label: t.status, run: () => this.announceStatus() },
+      { label: t.flip, run: () => this.toggleFlip() },
+      { separator: true },
       { label: t.copyImage, run: () => this._copyBoardImage() },
       {
         label: t.openLichess,
         run: () => {
           window.open(lichessUrl(fen), "_blank", "noopener");
+        },
+      },
+      // У партии есть только FEN-ссылка, а она отдаёт Lichess одну позицию:
+      // ходы теряются. Для разобранного PGN даём второй пункт — Lichess
+      // принимает PGN прямо в адресе и открывает партию для разбора.
+      hasPgn && {
+        label: t.openLichessGame,
+        run: () => {
+          window.open(lichessPgnUrl(pgn), "_blank", "noopener");
         },
       },
     ].filter(Boolean);
@@ -1543,7 +1714,6 @@ class ChessboardElement extends HTMLElement {
     this._menuReturnTo = returnTo || trigger || null;
     if (trigger && trigger.setAttribute) trigger.setAttribute("aria-expanded", "true");
     buttons[0].focus();
-    event?.preventDefault?.();
   }
 
   _closeActionsMenu() {
@@ -1716,7 +1886,11 @@ class ChessboardElement extends HTMLElement {
       applyPosition(grid, parsed, lang, { activeSquare: this._activeSquare, highlight });
     } else {
       this._tableWrap.replaceChildren(
-        renderGrid(parsed, lang, { activeSquare: this._activeSquare, highlight }),
+        renderGrid(parsed, lang, {
+          activeSquare: this._activeSquare,
+          highlight,
+          flipped: !!this._flipped,
+        }),
       );
     }
 
@@ -1760,12 +1934,21 @@ class ChessboardElement extends HTMLElement {
     const mod = e.ctrlKey || e.metaKey;
     if ((key === "ArrowUp" || key === "ArrowDown" || key === "ArrowLeft" || key === "ArrowRight") && !mod && !e.altKey) {
       e.preventDefault();
-      // RANKS идёт сверху вниз ("87654321"), поэтому вверх — это +1 к индексу.
+      // Стрелки ходят по ИМЕНАМ клеток, а не по пикселям: вверх — всегда
+      // больший номер горизонтали (a1 → a2 → a3), как назвал словами Дениз:
+      // «стрелка вверх а1 а2 а3 а4 а5». Ход на краю упирается в край: a1 +
+      // вверх и a8 + вниз стоят на месте, а не перескакивают на соседний файл.
+      // RANKS = "87654321": индекс 0 — это ВОСЬМАЯ горизонталь, поэтому
+      // индекс растёт ВНИЗ по номерам, а не вверх. Знак выводим из порядка
+      // строки, а не из пикселей экрана: без флипа вверх — больший номер
+      // (a1 → a2 → a3, как просил Дениз), после поворота на 180° знак
+      // переворачивается вместе с доской.
+      const dir = this._flipped ? 1 : -1;
       let dr = 0, df = 0;
-      if (key === "ArrowUp") dr = 1;
-      else if (key === "ArrowDown") dr = -1;
-      else if (key === "ArrowLeft") df = -1;
-      else df = 1;
+      if (key === "ArrowUp") dr = dir;
+      else if (key === "ArrowDown") dr = -dir;
+      else if (key === "ArrowLeft") df = dir;
+      else df = -dir;
       const rankIdx = RANKS.indexOf(this._activeSquare[1]);
       const fileIdx = FILES.indexOf(this._activeSquare[0]);
       const nr = rankIdx + dr;
@@ -1862,6 +2045,21 @@ class ChessboardElement extends HTMLElement {
       this._announceBest();
       return;
     }
+    // Клавиша S — статус позиции целиком: чей ход, кому какие рокировки
+    // доступны, превращённые пешки. Клавиша I отдаёт только перечисление фигур,
+    // поэтому статус отдельный: Дениз просил именно расширенное произнесение.
+    if (key === "s" || key === "S") {
+      e.preventDefault();
+      this.announceStatus();
+      return;
+    }
+    // Клавиша R — перевернуть доску. Живёт рядом с F (полный экран) и H
+    // (справка): все три — про вид, а не про ход.
+    if (key === "r" || key === "R") {
+      e.preventDefault();
+      this.toggleFlip();
+      return;
+    }
   }
 
   // Короткое нажатие A (меньше 2 секунд) — анализ партии. Длинное нажатие
@@ -1875,6 +2073,30 @@ class ChessboardElement extends HTMLElement {
       unlockAudio();
       this.toggleGameAnalysis();
     }
+  }
+
+  // Статус позиции: клавиша S или пункт меню. Считается из FEN текущей
+  // позиции, поэтому верен и для партии, и для доски, и для атрибута fen;
+  // мат берётся из SAN последнего хода — в FEN его нет.
+  announceStatus() {
+    const t = I18N[this.lang] || I18N.ru;
+    const fen = (this._current && this._current.fen) || this.getAttribute("fen") || START_FEN;
+    const move = this._current && this._current.move;
+    const text = positionStatus(fen, this.lang, move);
+    this._say(text);
+    return text;
+  }
+
+  // Переворот доски: клавиша R или пункт меню. Вращается вся сетка, поэтому
+  // класс вешаем на сам .chessjax-board, а не на обёртку — иначе в fullscreen
+  // (там сетка тянется на min(64vh, 92vw)) повернулась бы и рамка с кнопками.
+  toggleFlip() {
+    const t = I18N[this.lang] || I18N.ru;
+    this._flipped = !this._flipped;
+    const grid = this._tableWrap && this._tableWrap.querySelector(".chessjax-board");
+    if (grid) grid.classList.toggle("flipped", this._flipped);
+    speak(this._live, this._flipped ? t.flipped : t.notFlipped);
+    return this._flipped;
   }
 
   // Полноэкранный режим: клавиша F или кнопка ⛶ под доской. Внутренний esc

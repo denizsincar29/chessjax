@@ -73,9 +73,13 @@ check("Enter: ровно одна клетка в tab-порядке",
   wrap.querySelectorAll('.chessjax-cell[tabindex="0"]').length === 1,
   String(wrap.querySelectorAll('.chessjax-cell[tabindex="0"]').length));
 
-// 3. Стрелка — навигация работает и клетки на месте.
+// 3. Стрелка — навигация работает и клетки на месте. Вверх с a1 ведёт на a2:
+// больший номер горизонтали, как и просил Дениз («стрелка вверх а1 а2 а3»).
+// Вниз с a1 — упор в край, доска на месте.
 key(cell("a1"), "ArrowDown");
-check("стрелка: фокус на a2", window.document.activeElement === cell("a2"), String(window.document.activeElement && window.document.activeElement.dataset.square));
+check("стрелка вниз с a1 упирается в край", window.document.activeElement === cell("a1"), String(window.document.activeElement && window.document.activeElement.dataset.square));
+key(cell("a1"), "ArrowUp");
+check("стрелка вверх: фокус на a2", window.document.activeElement === cell("a2"), String(window.document.activeElement && window.document.activeElement.dataset.square));
 check("стрелка: доска осталась раскрытой", wrap.getAttribute("aria-hidden") === "false");
 
 // 4. Escape — снова скрыто, фокус на анонсе.
