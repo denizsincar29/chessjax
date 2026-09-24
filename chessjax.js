@@ -11,6 +11,61 @@
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+// --- Выгрузка позиции наружу -------------------------------------------------
+// Всё, что отдаёт меню действий, ходит через эти две функции. Обе намеренно
+// возвращают адрес, а не дёргают window сами: в тесте нет ни Blob-ссылок, ни
+// клика по скачиванию, а проверить строку можно.
+
+// FEN — с пробелами в %, а не как строка запроса: Lichess разбирает путь
+// /analysis/<fen> целиком, и «+» в query он прочитал бы как пробел.
+function lichessUrl(fen) {
+  return "https://lichess.org/analysis/" + String(fen).trim().replace(/ /g, "_");
+}
+
+// Скачивание — тот же Blob-трюк, что и в веб-версии mdcloud: страница тут ни
+// при чём, её ничего не спрашивают, поэтому работает и на http.
+function downloadText(text, filename) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return url;
+}
+
+// Сначала современный Clipboard API, и только если его нет — execCommand.
+// На http (а mathmd и облако отдаются по https, но встраивают доску куда
+// угодно) navigator.clipboard отсутствует, и без запасного пути копирование
+// молча не работало бы.
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) {
+    // Падение основного пути — не повод сдаться, пробуем запасной.
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:-1000px";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return !!ok;
+  } catch (e) {
+    return false;
+  }
+}
+
 // Язык по умолчанию — модульная переменная, а не поле chessjax: компонент
 // может апгрейдиться при customElements.define раньше инициализации экспортов.
 let defaultLanguage = "ru";
@@ -43,6 +98,17 @@ export const I18N = {
     pausedAt: (n, c) => "Остановлено на ходе " + n + " " + (c === "w" ? "белых" : "чёрных"),
     speedAt: (s) => "Скорость показа: " + (s >= 5 ? s + " секунд" : s === 1 ? s + " секунда" : s + " секунды") + " на ход",
     restart: "В начало",
+    actions: "Действия",
+    actionsHint: "Действия с позицией",
+    copyFen: "Скопировать FEN",
+    copyPgn: "Скопировать PGN",
+    downloadFen: "Скачать FEN",
+    downloadPgn: "Скачать PGN",
+    copyImage: "Скопировать позицию картинкой",
+    openLichess: "Открыть в Lichess",
+    copied: "Скопировано",
+    copyFailed: "Скопировать не удалось",
+    downloading: "Скачиваю",
     fullscreen: "Во весь экран",
     exitFullscreen: "Выйти из полноэкранного режима",
     fullscreenOn: "Полноэкранный режим",
@@ -133,6 +199,17 @@ export const I18N = {
     pausedAt: (n, c) => "Stopped at move " + n + " " + (c === "w" ? "white" : "black"),
     speedAt: (s) => "Playback speed: " + s + " seconds per move",
     restart: "Back to start",
+    actions: "Actions",
+    actionsHint: "Position actions",
+    copyFen: "Copy FEN",
+    copyPgn: "Copy PGN",
+    downloadFen: "Download FEN",
+    downloadPgn: "Download PGN",
+    copyImage: "Copy position as image",
+    openLichess: "Open in Lichess",
+    copied: "Copied",
+    copyFailed: "Could not copy",
+    downloading: "Downloading",
     fullscreen: "Fullscreen",
     exitFullscreen: "Exit fullscreen",
     fullscreenOn: "Fullscreen mode",
@@ -221,6 +298,17 @@ export const I18N = {
     pausedAt: (n, c) => "Angehalten bei Zug " + n + " " + (c === "w" ? "Weiß" : "Schwarz"),
     speedAt: (s) => "Geschwindigkeit: " + s + " Sekunden pro Zug",
     restart: "Zum Anfang",
+    actions: "Aktionen",
+    actionsHint: "Aktionen zur Stellung",
+    copyFen: "FEN kopieren",
+    copyPgn: "PGN kopieren",
+    downloadFen: "FEN herunterladen",
+    downloadPgn: "PGN herunterladen",
+    copyImage: "Stellung als Bild kopieren",
+    openLichess: "In Lichess öffnen",
+    copied: "Kopiert",
+    copyFailed: "Kopieren fehlgeschlagen",
+    downloading: "Wird heruntergeladen",
     fullscreen: "Vollbild",
     exitFullscreen: "Vollbild beenden",
     fullscreenOn: "Vollbildmodus",
@@ -309,6 +397,17 @@ export const I18N = {
     pausedAt: (n, c) => "Zug " + n + " " + (c === "w" ? "beyaz" : "siyah") + " durduruldu",
     speedAt: (s) => "Gösterim hızı: hamle başına " + s + " saniye",
     restart: "Başa dön",
+    actions: "İşlemler",
+    actionsHint: "Konum işlemleri",
+    copyFen: "FEN'i kopyala",
+    copyPgn: "PGN'i kopyala",
+    downloadFen: "FEN'i indir",
+    downloadPgn: "PGN'i indir",
+    copyImage: "Konumu resim olarak kopyala",
+    openLichess: "Lichess'te aç",
+    copied: "Kopyalandı",
+    copyFailed: "Kopyalanamadı",
+    downloading: "İndiriliyor",
     fullscreen: "Tam ekran",
     exitFullscreen: "Tam ekrandan çık",
     fullscreenOn: "Tam ekran modu",
@@ -1221,6 +1320,13 @@ class ChessboardElement extends HTMLElement {
 
     this._tableWrap = document.createElement("div");
     this._tableWrap.className = "chessjax-board-wrap";
+    // Меню действий принадлежит доске, а не строке кнопок: правый клик и
+    // «Контекстное меню» / Shift+F10 по самой доске открывают его. Узел живёт
+    // постоянным и вне _tableWrap — перерисовка позиции чистит только сетку.
+    this._tableWrap.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      this._openActionsMenu({ trigger: this._actionsBtn || this._tableWrap, returnTo: this._activeSquare || this._boardIntro });
+    });
     // Доска — открываемая область, и до Enter на анонсе её клетки скрыты от
     // скринридера совсем. Без этого обычная стрелка вниз просто читала сетку
     // («белая пешка E2, белая пешка E7…»): роль toolbar глушит болтливость
@@ -1250,7 +1356,18 @@ class ChessboardElement extends HTMLElement {
     this._btnFull = mkButton(t.fullscreen, "⛶", () => { unlockAudio(); this.toggleFullscreen(); });
     this._btnBest = mkButton(t.bestMove, "★", () => { unlockAudio(); this._announceBest(); });
     this._btnAnalyze = mkButton(t.gameAnalysis, "Σ", () => { unlockAudio(); this.toggleGameAnalysis(); });
-    controls.append(this._btnRestart, this._btnPrev, this._btnPlay, this._btnNext, this._btnFull, this._btnBest, this._btnAnalyze);
+    // Кнопка «Действия» — видимая точка входа с клавиатуры: до неё доходит Tab,
+    // на ней же Applications и Shift+F10 открывают меню. У самой доски такая
+    // клавиша тоже работает, но найти её без подписи нельзя.
+    this._actionsBtn = mkButton(t.actions, "≡", () => {
+      unlockAudio();
+      this._openActionsMenu({ trigger: this._actionsBtn, returnTo: this._actionsBtn });
+    });
+    this._actionsBtn.setAttribute("aria-haspopup", "menu");
+    this._actionsBtn.setAttribute("aria-expanded", "false");
+    this._actionsBtn.setAttribute("aria-label", t.actionsHint);
+
+    controls.append(this._btnRestart, this._btnPrev, this._btnPlay, this._btnNext, this._btnFull, this._btnBest, this._btnAnalyze, this._actionsBtn);
     wrap.appendChild(controls);
 
     this._live = document.createElement("p");
@@ -1279,6 +1396,21 @@ class ChessboardElement extends HTMLElement {
 
     // Клавиши навешиваем один раз на постоянный контейнер — при перерисовке
     // доски (replaceChildren) слушатель на самом _tableWrap сохраняется.
+    // Кнопка в строке живёт вне доски, поэтому её клавиши висят здесь: без
+    // этого Applications и Shift+F10 на ней открывали браузерное меню, а меню
+    // действий было доступно только мышью.
+    this._actionsBtn.addEventListener("keydown", (e) => {
+      if (e.key === "F10" && e.shiftKey) {
+        e.preventDefault();
+        this._openActionsMenu({ trigger: this._actionsBtn, returnTo: this._actionsBtn });
+      }
+    });
+    this._actionsBtn.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this._openActionsMenu({ trigger: this._actionsBtn, returnTo: this._actionsBtn });
+    });
+
     this._tableWrap.addEventListener("keydown", (e) => this._onBoardKeydown(e));
     this._tableWrap.addEventListener("keyup", (e) => this._onBoardKeyup(e));
     this._tableWrap.addEventListener("focusin", (e) => this._onFocusIn(e));
@@ -1289,6 +1421,213 @@ class ChessboardElement extends HTMLElement {
       if (!cell || !cell.dataset.square) return;
       this._focusBoard(cell.dataset.square);
     });
+  }
+
+  // Меню действий позиции. Устроено как меню документа в облаке mdcloud:
+  // открывается кликом, правым кликом и с клавиатуры (Applications / Shift+F10),
+  // закрывается Escape, уходом фокуса и кликом мимо, а пункт на выходе
+  // возвращает фокус туда, откуда меню открыли.
+  _openActionsMenu({ trigger = null, returnTo = null } = {}) {
+    this._closeActionsMenu();
+    const t = I18N[this.lang] || I18N.ru;
+    const fen = (this._current && this._current.fen) || this.getAttribute("fen") || START_FEN;
+    const pgn = this._pgnText || "";
+    // Наличие PGN — не «есть атрибут pgn», а «ходы разобрались»: битый PGN
+    // рисует ошибку на месте доски, и пункты про PGN в меню были бы враньём.
+    const hasPgn = !!(pgn && this._positions && this._positions.length);
+    const moveNo = hasPgn ? Math.min(this._idx, this._positions.length - 1) : 0;
+    const base = (this.id || "position").replace(/[^\w.-]+/g, "-");
+
+    const items = [
+      { label: t.copyFen, run: () => this._copyOut(fen) },
+      hasPgn && {
+        label: t.copyPgn,
+        run: () => this._copyOut(pgn),
+      },
+      { separator: true },
+      {
+        label: t.downloadFen,
+        run: () => {
+          downloadText(fen + "\n", base + "-" + (moveNo + 1) + ".fen");
+          this._say(t.downloading);
+        },
+      },
+      hasPgn && {
+        label: t.downloadPgn,
+        run: () => {
+          downloadText(pgn, base + ".pgn");
+          this._say(t.downloading);
+        },
+      },
+      { separator: true },
+      { label: t.copyImage, run: () => this._copyBoardImage() },
+      {
+        label: t.openLichess,
+        run: () => {
+          window.open(lichessUrl(fen), "_blank", "noopener");
+        },
+      },
+    ].filter(Boolean);
+
+    const menu = document.createElement("div");
+    menu.className = "chessjax-menu";
+    menu.setAttribute("role", "menu");
+    menu.setAttribute("aria-label", t.actionsHint);
+    menu.style.cssText =
+      "position:absolute;z-index:30;left:0;top:0;min-width:16em;background:#fff;color:#111;" +
+      "border:1px solid #767676;border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,.25);" +
+      "padding:4px 0;font:inherit";
+    menu.tabIndex = -1;
+
+    const buttons = [];
+    for (const item of items) {
+      if (item.separator) {
+        const sep = document.createElement("div");
+        sep.className = "chessjax-menu-sep";
+        sep.setAttribute("role", "separator");
+        sep.style.cssText = "height:1px;margin:4px 0;background:#d0d0d0";
+        menu.appendChild(sep);
+        continue;
+      }
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chessjax-menu-item";
+      btn.setAttribute("role", "menuitem");
+      btn.textContent = item.label;
+      btn.style.cssText =
+        "display:block;width:100%;text-align:left;padding:6px 12px;border:0;background:transparent;" +
+        "font:inherit;cursor:pointer";
+      btn.addEventListener("click", () => {
+        this._closeActionsMenu();
+        item.run();
+      });
+      menu.appendChild(btn);
+      buttons.push(btn);
+    }
+
+    if (!buttons.length) return;
+
+    menu.addEventListener("keydown", (e) => {
+      const i = buttons.indexOf(document.activeElement);
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        e.stopPropagation();
+        const step = e.key === "ArrowDown" ? 1 : -1;
+        const next = i < 0 ? 0 : (i + step + buttons.length) % buttons.length;
+        buttons[next].focus();
+      } else if (e.key === "Home" || e.key === "End") {
+        e.preventDefault();
+        e.stopPropagation();
+        buttons[e.key === "Home" ? 0 : buttons.length - 1].focus();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        this._closeActionsMenu();
+      } else if (e.key === "Tab") {
+        this._closeActionsMenu();
+      }
+    });
+    // Уход фокуса и клик мимо закрывают меню — как в облаке mdcloud.
+    menu.addEventListener("focusout", (e) => {
+      if (!menu.contains(e.relatedTarget)) this._closeActionsMenu();
+    });
+    this._menuOutside = (e) => {
+      if (!menu.contains(e.target)) this._closeActionsMenu();
+    };
+    document.addEventListener("mousedown", this._menuOutside, true);
+
+    // Родитель — сам элемент доски: он position:relative у страницы, и меню
+    // встаёт поверх доски у её верхнего края, а не в конце документа.
+    this.appendChild(menu);
+    this._actionsMenu = menu;
+    this._menuReturnTo = returnTo || trigger || null;
+    if (trigger && trigger.setAttribute) trigger.setAttribute("aria-expanded", "true");
+    buttons[0].focus();
+    event?.preventDefault?.();
+  }
+
+  _closeActionsMenu() {
+    if (this._menuOutside) {
+      document.removeEventListener("mousedown", this._menuOutside, true);
+      this._menuOutside = null;
+    }
+    const menu = this._actionsMenu;
+    this._actionsMenu = null;
+    if (menu && menu.parentNode) menu.remove();
+    if (this._actionsBtn) this._actionsBtn.setAttribute("aria-expanded", "false");
+    const back = this._menuReturnTo;
+    this._menuReturnTo = null;
+    // Фокус возвращаем только если он остался внутри исчезнувшего меню: иначе
+    // клик мышью по странице снова дёрнул бы фокус назад в доску.
+    if (back && back.focus && menu && menu.contains(document.activeElement)) back.focus();
+  }
+
+  // Общий выход озвучки для действий меню: то, что происходит мимо _live,
+  // скринридеру иначе не слышно вовсе.
+  _say(text) {
+    if (this._live) speak(this._live, text);
+  }
+
+  async _copyOut(text) {
+    const t = I18N[this.lang] || I18N.ru;
+    const ok = await copyText(text);
+    this._say(ok ? t.copied : t.copyFailed);
+  }
+
+  // Позиция картинкой — через canvas: SVG снимать в буфер обмена браузеры не
+  // умеют, а PNG умеют все. Отрисовка своя, до сетки в DOM: она переезжает
+  // между ходами, и снимать с неё было бы гонкой.
+  async _copyBoardImage() {
+    const t = I18N[this.lang] || I18N.ru;
+    try {
+      const parsed = parseFen((this._current && this._current.fen) || START_FEN);
+      const size = 480;
+      const cell = size / 8;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      for (let r = 0; r < 8; r++) {
+        for (let f = 0; f < 8; f++) {
+          const light = (r + f) % 2 === 0;
+          ctx.fillStyle = light ? "#f0d9b5" : "#b58863";
+          ctx.fillRect(f * cell, r * cell, cell, cell);
+        }
+      }
+      ctx.font = Math.round(cell * 0.8) + "px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (let r = 0; r < 8; r++) {
+        for (let f = 0; f < 8; f++) {
+          const piece = parsed.board[r][f];
+          if (!piece) continue;
+          ctx.fillStyle = piece.c === "w" ? "#fff" : "#111";
+          ctx.strokeStyle = piece.c === "w" ? "#111" : "#fff";
+          ctx.lineWidth = 2;
+          const glyph = GLYPH[piece.c === "w" ? piece.t.toUpperCase() : piece.t.toLowerCase()];
+          const x = f * cell + cell / 2;
+          const y = r * cell + cell / 2;
+          if (glyph) {
+            ctx.fillText(glyph, x, y);
+            ctx.strokeText(glyph, x, y);
+          } else {
+            ctx.beginPath();
+            ctx.arc(x, y, cell * 0.32, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
+      if (!blob) throw new Error("no blob");
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        this._say(t.copied);
+        return;
+      }
+      throw new Error("clipboard image unsupported");
+    } catch (e) {
+      this._say(t.copyFailed);
+    }
   }
 
   async _load() {
@@ -1303,6 +1642,7 @@ class ChessboardElement extends HTMLElement {
         const res = await fetch(pgnSrc);
         if (!res.ok) throw new Error("HTTP " + res.status);
         const pgn = await res.text();
+        this._pgnText = pgn;
         this._positions = await applyPgnFull(pgn);
       } catch (e) {
         this._positions = null;
@@ -1476,6 +1816,21 @@ class ChessboardElement extends HTMLElement {
         e.preventDefault();
         this._leaveBoard();
       }
+      return;
+    }
+    // Кнопка «Контекстное меню» (и Shift+F10) по самой доске открывает меню
+    // действий. Правый клик ловит contextmenu на _tableWrap выше.
+    if (e.key === "ContextMenu" || (e.key === "F10" && e.shiftKey)) {
+      e.preventDefault();
+      this._openActionsMenu({
+        trigger: this._actionsBtn,
+        returnTo: this._activeSquare || this._boardIntro,
+      });
+      return;
+    }
+    if (this._actionsMenu && e.key === "Escape") {
+      e.preventDefault();
+      this._closeActionsMenu();
       return;
     }
     if (key === "h" || key === "H") {
