@@ -15,7 +15,7 @@ Local:
 Or from CDN (pinned to a tag):
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.8.1/chessjax.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/denizsincar29/chessjax@v0.8.4/chessjax.js"></script>
 ```
 
 ## Usage
