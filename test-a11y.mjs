@@ -99,5 +99,32 @@ cell("d2").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
 check("клик: фокус на d2", window.document.activeElement === cell("d2"), String(window.document.activeElement && window.document.activeElement.dataset.square));
 check("клик: доска раскрыта", wrap.getAttribute("aria-hidden") === "false");
 
+// 7. Русская раскладка. У Дениза клавиатура в русской раскладке: браузер тогда
+// отдаёт e.key = «р» («R» на своей физической позиции), и до правки буквенные
+// хоткеи молчали все разом. Ключ к раскладке — физический e.code, поэтому
+// нажимаем так, как это делает русская раскладка, и ждём ту же реакцию.
+const keyTy = (el, code, ch) => el.dispatchEvent(new window.KeyboardEvent("keydown", {
+  key: ch, code, bubbles: true, cancelable: true,
+}));
+key(intro, "Escape");
+key(intro, "Enter");
+check("перед проверкой раскладки: фокус в клетке", wrap.contains(window.document.activeElement));
+const grid = wrap.querySelector(".chessjax-board");
+keyTy(window.document.activeElement, "KeyR", "р");
+check("русская раскладка: R переворачивает доску", !!board._flipped, String(board._flipped));
+// Поворот — это класс .flipped, а сам transform задаёт CSS-правило; jsdom
+// правила не считает, поэтому проверяем класс, а геометрию меряет живой
+// прогон check-layout-live.py в настоящем Chromium.
+check("русская раскладка: доска помечена flipped", grid.classList.contains("flipped"), grid.className);
+keyTy(window.document.activeElement, "KeyR", "р");
+check("русская раскладка: повторное R возвращает как было", !board._flipped, String(board._flipped));
+// Статус позиции — вторая буква, проверяем что и она дошла: вывод идёт в
+// live-регион, поэтому смотрим текст, а не факт вызова.
+const live = board._live;
+const liveBefore = live.textContent;
+keyTy(window.document.activeElement, "KeyS", "ы");
+await new Promise((r) => setTimeout(r, 150));
+check("русская раскладка: S произносит статус", live.textContent && live.textContent !== liveBefore, live.textContent.slice(0, 70));
+
 console.log(failed ? "\n" + failed + " провал(ов)" : "\nвсё зелёное");
 process.exit(failed ? 1 : 0);

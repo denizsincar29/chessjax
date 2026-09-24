@@ -1151,6 +1151,21 @@ function speak(el, text) {
   setTimeout(() => { el.textContent = text; }, 60);
 }
 
+// Клавиша для сравнения с раскладко-независимыми буквенными хоткеями.
+// e.code — это ФИЗИЧЕСКАЯ клавиша («KeyR» на любой раскладке), e.key — символ,
+// который она печатает («р» в русской, «r» в английской). До этой правки все
+// буквы в chessjax работали только при английской раскладке: у Дениза русская,
+// и ни одна из них не отзывалась. Возвращаем строчную латинскую букву по
+// позиции клавиши; для остальных клавиш (стрелки, пробел, Escape, F10) —
+// e.key как раньше, потому что их имена от раскладки не зависят.
+function normalizeKey(e) {
+  const code = e.code;
+  if (typeof code === "string" && code.length === 4 && code.startsWith("Key")) {
+    return code.slice(3).toLowerCase();
+  }
+  return e.key;
+}
+
 // Банк фраз вердикта: случайная фраза без повтора подряд. Элемент — строка или
 // функция от контекста { p, t }: p — взятая фигура (или undefined), t — словарь
 // языка. Один и тот же механизм у обычного анализа и роаста.
@@ -1184,7 +1199,11 @@ function loadSoundFile(name) {
   if (soundCache.has(name)) return Promise.resolve(soundCache.get(name));
   const ctx = getAudioCtx();
   if (!ctx) return Promise.resolve(null);
-  const url = new URL("./sound/" + name + ".mp3", import.meta.url).href;
+  // Резолвим относительно себя через currentScript, а не import.meta.url:
+  // эта же строка уезжает в chessjax-inline.js, который вставляют как обычный
+  // (не module) <script>, где import.meta — синтаксическая ошибка.
+  const base = (typeof document !== "undefined" && document.currentScript && document.currentScript.src) || (typeof location !== "undefined" ? location.href : "");
+  const url = new URL("./sound/" + name + ".mp3", base).href;
   return fetch(url)
     .then((r) => (r.ok ? r.arrayBuffer() : null))
     .then((ab) => (ab ? ctx.decodeAudioData(ab) : null))
@@ -1930,7 +1949,12 @@ class ChessboardElement extends HTMLElement {
   //   V — проиграть вариант (повторно — финал); Esc — выйти из варианта;
   //   H — справка по разделам.
   _onBoardKeydown(e) {
-    const key = e.key;
+    // Буквенные горячие клавиши берём из ФИЗИЧЕСКОЙ клавиши (e.code), а не из
+    // e.key: при русской раскладке e.key — это «ф», «ы», «в» и т.д., и все
+    // буквы разом перестают работать. Позиция клавиши от раскладки не зависит,
+    // поэтому QWERTY-буква остаётся той же. Для стрелок, пробела, Escape и
+    // F10 поведение не меняется — у них e.key и так стабилен.
+    const key = normalizeKey(e);
     const mod = e.ctrlKey || e.metaKey;
     if ((key === "ArrowUp" || key === "ArrowDown" || key === "ArrowLeft" || key === "ArrowRight") && !mod && !e.altKey) {
       e.preventDefault();
@@ -2065,7 +2089,7 @@ class ChessboardElement extends HTMLElement {
   // Короткое нажатие A (меньше 2 секунд) — анализ партии. Длинное нажатие
   // (2 секунды) уже обработано таймером в keydown, здесь keyup его не дублирует.
   _onBoardKeyup(e) {
-    if ((e.key === "a" || e.key === "A") && !this._aLongDone) {
+    if (normalizeKey(e) === "a" && !this._aLongDone) {
       if (this._aLongTimer) {
         clearTimeout(this._aLongTimer);
         this._aLongTimer = null;
