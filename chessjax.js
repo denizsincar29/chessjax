@@ -788,8 +788,15 @@ function applyPosition(board, parsed, lang, opts = {}) {
         // остаётся фоллбэком на случай фигуры, для которой картинки нет.
         const key = piece.color === "w" ? piece.piece.toUpperCase() : piece.piece;
         const img = pieceNode(key);
-        if (img) cell.appendChild(img);
-        else {
+        if (img) {
+          // Фигура не должна попадаться на пути стрелок: «обзор → фигура
+          // (картинка без имени) → клетка» — лишняя остановка без единого
+          // слова, и NVDA на ней молчит. Как в Desmos: графический
+          // калькулятор стрелкой вниз пропускается. Заодно это сбрасывает
+          // подсветку NVDA на клетку — её aria-label он и произносит.
+          cell.setAttribute("role", "img");
+          cell.appendChild(img);
+        } else {
           const glyph = document.createElement("span");
           glyph.setAttribute("aria-hidden", "true");
           glyph.textContent = GLYPH[key];
