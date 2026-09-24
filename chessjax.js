@@ -88,7 +88,7 @@ export const I18N = {
     equalPosition: "Позиция равная",
     intro: "Шахматная доска. Стрелки ведут по клеткам, клавиша H — инструкция по управлению. В JAWS, если стрелки не работают, включите режим форм.",
     // Анонс перед доской: его читает скринридер, листая документ стрелками.
-    boardIntro: "Шахматная доска, область. Нажмите Enter, чтобы взаимодействовать с доской.",
+    boardIntro: "Шахматная доска. Enter — открыть и встать на клетку, Escape — выйти.",
     help: [
       "Навигация по доске. Стрелки вверх, вниз, влево и вправо — перейти на соседнюю клетку. На клетке с фигурой вы услышите фигуру и координаты. Если доска ещё не слушает клавиши, нажмите Enter на её анонсе или щёлкните по доске — фокус встанет на клетку.",
       "Ходы и комментарии. Контрол и стрелки влево и вправо — предыдущий и следующий ход. Ход озвучивается фигурой и координатами, после него читается комментарий из записи партии.",
@@ -176,7 +176,7 @@ export const I18N = {
     adv: { w: "White advantage", b: "Black advantage" },
     equalPosition: "Equal position",
     intro: "Chessboard. The arrows move over the squares, press H for usage instructions. In JAWS, if the arrows do not work, switch to forms mode.",
-    boardIntro: "Chessboard, region. Press Enter to interact with the board.",
+    boardIntro: "Chessboard. Press Enter to open and land on a square, Escape to leave.",
     help: [
       "Board navigation. Arrow up, down, left and right move to a neighbouring square. On a square with a piece you hear the piece and its coordinates. If the board does not take keys yet, press Enter on its announcement or click the board — the focus lands on a square.",
       "Moves and comments. Control plus arrow left and right step to the previous and next move. Each move is announced with the piece and squares, followed by the comment from the game record.",
@@ -264,7 +264,7 @@ export const I18N = {
     adv: { w: "Weißer Vorteil", b: "Schwarzer Vorteil" },
     equalPosition: "Ausgeglichene Stellung",
     intro: "Schachbrett. Die Pfeiltasten führen über die Felder, Taste H — Bedienungsanleitung. In JAWS bei Bedarf in den Formularmodus schalten.",
-    boardIntro: "Schachbrett, Bereich. Enter drücken, um mit dem Brett zu arbeiten.",
+    boardIntro: "Schachbrett. Enter öffnet das Brett und setzt den Fokus auf ein Feld, Escape verlässt es.",
     help: [
       "Brett-Navigation. Pfeil hoch, runter, links und rechts — benachbarte Felder. Auf einem Feld mit einer Figur hören Sie die Figur und die Koordinaten. Nimmt das Brett noch keine Tasten an, Enter auf der Ankündigung drücken oder das Brett anklicken — der Fokus landet auf einem Feld.",
       "Züge und Kommentare. Strg plus Pfeil links und rechts — vorheriger und nächster Zug. Der Zug wird mit Figur und Feldern angesagt, danach der Kommentar aus der Partie.",
@@ -352,7 +352,7 @@ export const I18N = {
     adv: { w: "Beyaz avantaj", b: "Siyah avantaj" },
     equalPosition: "Konum dengede",
     intro: "Satranç tahtası. Oklar kareler üzerinde gezinir, kullanım talimatları için H tuşuna basın. JAWS'ta oklar çalışmazsa form moduna geçin.",
-    boardIntro: "Satranç tahtası, bölge. Tahtayla etkileşim için Enter'a basın.",
+    boardIntro: "Satranç tahtası. Açmak ve bir kareye gelmek için Enter'a, çıkmak için Escape'e basın.",
     help: [
       "Tahta gezinme. Yukarı, aşağı, sol ve sağ oklar — komşu kareye geçer. Taş olan karede taşı ve koordinatları duyarsınız. Tahta henüz tuşları almıyorsa, duyurusunda Enter'a basın veya tahtaya tıklayın — odak bir kareye gelir.",
       "Hamleler ve yorumlar. Kontrol ve sol/sağ oklar — önceki ve sonraki hamle. Hamle taş ve karelerle okunur, ardından kayıttaki yorum söylenir.",
@@ -1230,6 +1230,13 @@ class ChessboardElement extends HTMLElement {
 
     this._summary = document.createElement("p");
     this._summary.className = "chessjax-summary";
+    // Перечисление всей армии («Белые: король e1, ферзь d1, ладьи a1 h1…»)
+    // читается только глазами: это подпись к позиции для зрячего, который
+    // окидывает доску взглядом. Скринридеру она не нужна — до Enter клетки
+    // и так закрыты, а после Enter каждая клетка называет свою фигуру
+    // сама. На фокусе анонса эта строка превращалась в стену текста перед
+    // каждой партией, поэтому прячем её из дерева доступности совсем.
+    this._summary.setAttribute("aria-hidden", "true");
     wrap.appendChild(this._summary);
 
     const controls = document.createElement("div");

@@ -17,7 +17,7 @@ function check(name, cond, detail = "") {
   if (!cond) failed++;
 }
 
-const src = readFileSync(new URL("./chessjax.js", import.meta.url), "utf8");
+const src = readFileSync(new URL("./chessjax-inline.js", import.meta.url), "utf8");
 const dom = new JSDOM(
   `<!doctype html><html><body><chessjax-board id="b" fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" controls="none"></chessjax-board></body></html>`,
   { runScripts: "outside-only", pretendToBeVisual: true, url: "https://example.test/" }
@@ -38,6 +38,16 @@ if (!(await waitFor(() => board._tableWrap && board._boardIntro, "внутрен
   console.log("\n" + failed + " провал(ов)");
   process.exit(1);
 }
+
+// Перечисление армии («Белые: король e1, ферзь d1, ладьи a1 h1…») — подпись
+// для зрячего. Проверяем, что оно вне дерева доступности: иначе на каждом
+// фокусе анонса скринридер выдаёт стену текста перед партией.
+check("подпись позиции в aria-hidden", board._summary.getAttribute("aria-hidden") === "true");
+check(
+  "анонс не содержит перечисления армии",
+  !/король|ферзь|ладь/i.test(board._boardIntro.textContent),
+  board._boardIntro.textContent
+);
 if (!(await waitFor(() => board._tableWrap.querySelector(".chessjax-cell"), "клетки"))) {
   console.log("\n" + failed + " провал(ов)");
   process.exit(1);
